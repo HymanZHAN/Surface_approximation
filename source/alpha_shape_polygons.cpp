@@ -41,7 +41,7 @@ bool file_input(OutputIterator out, std::string path)
 	}
 	int n;
 	is >> n;
-	std::cout << "Reading " << n << " points from file" << std::endl;
+	//std::cout << "Reading " << n << " points from file" << std::endl;
 	CGAL::cpp11::copy_n(std::istream_iterator<Point>(is), n, out);
 	return true;
 }
@@ -726,7 +726,7 @@ double computePolygonArea(Polygon_list polygon_list)
 	{
 		Polygon_2 current_polygon = polygon_list.back();
 		polygon_list.pop_back();
-		std::cout << "area[" << i << "] = " << current_polygon.area() << std::endl;
+		//std::cout << "area[" << i << "] = " << current_polygon.area() << std::endl;
 		if (abs(current_polygon.area()) > area_threshold)
 		{
 			total_area = total_area + current_polygon.area();
@@ -772,7 +772,7 @@ double getAlphaShape(std::string path)
 	std::vector<SEdge> edge_list = loadEdgeFromTXT(alpha_shape_edges);
 	outputEdgeList(edge_list);
 	Polygon_list polygon_list = polygonPartition(edge_list);
-	visualizePolygonList(polygon_list);
+	//visualizePolygonList(polygon_list);
 	double total_area = computePolygonArea(polygon_list);
 	return total_area;
 }
