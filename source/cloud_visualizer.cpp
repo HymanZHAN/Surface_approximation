@@ -58,7 +58,9 @@ void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string 
 	viewer.setCameraPosition( 0 , 0 , 1,//double pos_x, double pos_y, double pos_z,                                    
 		                      0 , 0 , 0,//double view_x, double view_y, double view_z,
 						      0 , 1 , 0);//double up_x, double up_y, double up_z, int viewport = 0);
-	//viewer.updateCamera();
+	
+	// Reset camera according to the input data. Zoom out so that all data points can be viewed.
+	viewer.resetCamera();
 
 	while (!viewer.wasStopped ())
     {
@@ -84,6 +86,7 @@ void visualizeTwoPointClouds(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::Po
 	//viewer.addPointCloud(vertices, "vertices"); 
 
 	viewer.addPointCloud(cloud1, "cloud1"); 
+	viewer.resetCamera();
 
     while (!viewer.wasStopped()) 
     { 
@@ -100,7 +103,8 @@ void visualizeShapes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std
 	viewer = shapesVis(cloud_to_visualize,label_viewer_window,hull_indexes,chain);
 
 	//viewer->addCoordinateSystem (1000);
-	 while (!viewer->wasStopped ())
+	viewer->resetCamera();
+	while (!viewer->wasStopped ())
 	{
 		viewer->spinOnce (100);
 		boost::this_thread::sleep (boost::posix_time::microseconds (100000));
@@ -135,6 +139,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesconvex(pcl::PointClou
 	}
 	viewer->addLine<pcl::PointXYZ>(cloud->points[hull_index[j]], cloud->points[hull_index[0]], std::to_string(static_cast<long long>(j)));
 
+	viewer->resetCamera();
 	return (viewer);
 }
 
@@ -144,6 +149,7 @@ void visualizeConvexHull(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize,
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 	//pcl::visualization::PCLVisualizer viewer("PCL Viewer");
 	viewer = shapesconvex(cloud_to_visualize, label_viewer_window, hull_indexes);
+	viewer->resetCamera();
 
 	while (!viewer->wasStopped())
 	{

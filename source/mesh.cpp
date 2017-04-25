@@ -452,7 +452,6 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 
 	mesh_viewer_->getRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActors()->GetLastActor()->GetProperty()->SetInterpolationToPhong();*/
 
-
 	return true;
 }
 
