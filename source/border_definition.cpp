@@ -61,7 +61,7 @@ Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch
 	transformed_pla_patch_cloud = transformPlanarPatchPoints(planar_patch_cloud, plane_param);
 	//visualizePointCloud(transformed_pla_patch_cloud, "flattened_plane");
 	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(transformed_pla_patch_cloud, "flattened_plane", (*count_flattened_cloud)++));
-	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 
 
 
@@ -427,7 +427,7 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, cyl_param);
 	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(flattened_cloud, "flattened_cylinder", (*count_flattened_cloud)++));
-	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud= transformConicalPatchPoints(conical_patch_cloud, cone_param);	
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud= FlattenCloud(canonical_output_cloud, cone_param);
 
@@ -682,7 +682,7 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_pat
 	//flatten 3d point cloud into XOZ-Plane
 	pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud = FlattenCloud(canonical_output_cloud, cone_param);
 	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(flatten_cloud, "flattened_cone", (*count_flattened_cloud)++));
-	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 
 	Eigen::Vector2f flatten_point_i;
 	float alpha;

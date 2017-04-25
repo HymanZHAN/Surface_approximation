@@ -57,7 +57,7 @@ D:\\Development\\Surface_approximation\\temp\\cloud_with_normals.pcd
 80.0
 50
 .5
-15
+20
 D:\\Development\\Surface_approximation\\temp\\
 0.9
 0.9

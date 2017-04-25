@@ -8,6 +8,8 @@
 #ifndef READ_PARAMETERS_H
 #define READ_PARAMETERS_H
 
+#include <string>
+#include <vector>
 
 extern std::string PATH_PCD_DOC;
 extern int PLANE_METHOD_TYPE;
