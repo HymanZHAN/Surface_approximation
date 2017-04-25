@@ -105,7 +105,8 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 
 
 		bool good_patch_marker_plane = 1;
-		(*patch_data)[*patch_count] = MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
+		//MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
 		if (good_patch_marker_plane == 0)
 		{
 			std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
@@ -125,7 +126,7 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 			}
 			//continue;
 		}
-
+		(*patch_data)[*patch_count] = temp_patch_data;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		*sourceCloud = *cloud_p;
 		(*sourceClouds)[*patch_count] = sourceCloud;
@@ -271,8 +272,8 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 
 		// determine the possible shared border lines of the patch
 		bool good_patch_marker_cylinder = 1;
-
-		(*patch_data)[*patch_count] = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
+		 //MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
 		if (good_patch_marker_cylinder == 0)
 		{
 			std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
@@ -292,7 +293,7 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 			}
 			//continue;
 		}
-
+		(*patch_data)[*patch_count] = temp_patch_data;
 		//patch_data[patch_count] = MainCylindricalPatch(cloud_p, coefficients->values);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		*sourceCloud = *cloud_p;
@@ -424,7 +425,8 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 
 		// Determine the possible shared border lines of the patch
 		bool good_patch_marker_cone = 1;
-		(*patch_data)[*patch_count] = MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
+		// MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
 		if (good_patch_marker_cone == 0)
 		{
 			std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
@@ -443,7 +445,7 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 				break;
 			}
 		}
-
+		(*patch_data)[*patch_count] = temp_patch_data;
 		//patch_data[patch_count] = MainConicalPatch(cloud_p, coefficients->values);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		*sourceCloud = *cloud_p;
