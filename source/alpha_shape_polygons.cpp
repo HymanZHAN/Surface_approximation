@@ -45,7 +45,6 @@ bool file_input(OutputIterator out, std::string path)
 	CGAL::cpp11::copy_n(std::istream_iterator<Point>(is), n, out);
 	return true;
 }
-// this is a new branch.
 
 void outputCloudOnTXT_PtNumber(Polygon_2 polygon)
 {
@@ -675,15 +674,7 @@ Polygon_list polygonPartition(std::vector<SEdge> edge_list)
 			current_edge = next_edge;
 			//output_serial_number.push_back(current_edge.serial_number);
 		}
-		//if (polygon.size() < 3)
-		//{
-		//	//size++;
-		//	continue;
-		//}
-		//outputCloudOnTXT_PtNumber(polygon);
-
-		//if (polygon.is_simple())
-		//{
+		
 
 		if ((abs(first_edge.start_point.x - end_x) < 0.0001) && (abs(first_edge.start_point.y - end_y) < 0.0001))
 		{
@@ -750,7 +741,6 @@ double getAlphaShape(std::string path)
 	if (!file_input(std::back_inserter(points), path))
 	{
 
-		//return -1;
 	}
 
 	Alpha_shape_2 A(points.begin(), points.end(), FT(100000), Alpha_shape_2::REGULARIZED);
