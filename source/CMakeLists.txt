@@ -49,7 +49,7 @@ qt5_add_resources ( CGAL_Qt5_RESOURCE_FILES ./Alpha_shapes_2.qrc )
 add_executable ( Surface_approximation Surface_approximation.cpp alpha_shape_polygons.cpp 
 				 main_window.cpp border_definition.cpp cloud_visualizer.cpp 
 				 geometry_tools.cpp io.cpp mesh.cpp read_parameters.cpp 
-				 segmentation.cpp utils_sampling.cpp vcg_mesh.cpp 
+				 segmentation.cpp utils_sampling.cpp vcg_mesh.cpp patch_recognition.cpp
 				 ${DT_UI_FILES} ${CGAL_Qt5_RESOURCE_FILES} ${CGAL_Qt5_MOC_FILES})
 qt5_use_modules (Surface_approximation Xml Script OpenGL Svg)
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS Surface_approximation )
