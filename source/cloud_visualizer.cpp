@@ -16,13 +16,13 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesVis(pcl::PointCloud<p
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer (label_viewer_window));
 	viewer->setBackgroundColor (0, 0, 0);
 	viewer->addPointCloud<pcl::PointXYZ> (cloud, "sample cloud");
-	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
+	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 	viewer->addCoordinateSystem (500.0, "global");
 	viewer->setCameraPosition(0 , -1 , 0,//double pos_x, double pos_y, double pos_z,                                    
 		                      0 , 0 , 0,//double view_x, double view_y, double view_z,
 						      0 , 0 , 1);//double up_x, double up_y, double up_z, int viewport = 0););
 
-
+	
   //------------------------------------
   //-----Add shapes at cloud points-----
   //------------------------------------
@@ -54,6 +54,7 @@ void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string 
 	pcl::visualization::PCLVisualizer viewer (label_viewer_window);
     viewer.setBackgroundColor (0, 0, 0);
     viewer.addPointCloud<pcl::PointXYZ>(cloud,label_viewer_window);
+	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, label_viewer_window);
 	viewer.addCoordinateSystem (500.0);
 	viewer.setCameraPosition( 0 , 0 , 1,//double pos_x, double pos_y, double pos_z,                                    
 		                      0 , 0 , 0,//double view_x, double view_y, double view_z,

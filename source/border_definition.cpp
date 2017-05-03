@@ -582,10 +582,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr flattenCylindricalPatch(pcl::PointCloud<pcl:
 	//outputCloudOnTXT(flattened_cloud, "flat_cyl");
 	//pcl::io::savePCDFileASCII("C:\\Extract_indices\\flattened_cloud.pcd", *flattened_cloud);
 	//visualizePointCloud(flattened_cloud, "FLATTENED CYLINDER");
-	//visualizePointCloud(flattened_cloud, "flattened_cylinder");
-
-
-
+	
+	
+	visualizePointCloud(flattened_cloud, "flattened_cylinder");
 	return flattened_cloud;
 }
 
@@ -596,6 +595,23 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr transformCylindricalPatchPoints(pcl::PointCl
 	pcl::PointCloud<pcl::PointXYZ>::Ptr ptr_output_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	ptr_output_cloud = transformCloudByMatrix_cylinder(cylindrical_patch_cloud, transform_matrix, cyl_param);
 
+	// Transition: move cylindrical point cloud along z-axis so that all points have positive z value.
+	float smallest_z = ptr_output_cloud->at(0).z;
+	
+	for (int i = 1; i < ptr_output_cloud->size() - 1; i++)
+	{
+		if (ptr_output_cloud->at(i).z < smallest_z)
+		{
+			smallest_z = ptr_output_cloud->at(i).z;
+		}
+	}
+
+	for (int i = 0; i < ptr_output_cloud->size(); i++)
+	{
+		ptr_output_cloud->at(i).z -= smallest_z;
+	}
+		
+	visualizePointCloud(ptr_output_cloud, "transformed cylinder");
 	return ptr_output_cloud;
 }
 
@@ -636,14 +652,10 @@ Eigen::Matrix3f getTransformMatrixForAlignmentWithCylinderAxis(std::vector<float
 	double norm = dif.norm();
 	for (std::size_t i = 0; i < 3; ++i)
 		x_axis[i] = dif[i] / norm;
-	//std::cerr << "x_axis = (" << x_axis[0] << "," << x_axis[1] << "," << x_axis[2] << ")" << std::endl;
-	//std::cerr << "x_axis norm = " << x_axis.norm() << std::endl;
 
 	//y axis definition
 	y_axis = z_axis.cross(x_axis);
-	//std::cerr << "y_axis = (" << y_axis[0] << "," << y_axis[1] << "," << y_axis[2] << ")" << std::endl;
-	//std::cerr << "y_axis norm = " << y_axis.norm() << std::endl;
-
+	
 	//Get the transformation matrix referred to the new coordinate system
 	Eigen::Matrix3f trasf_matrix = buildTransformMatrixFromAxis(x_axis, y_axis, z_axis);
 
