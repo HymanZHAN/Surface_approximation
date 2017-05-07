@@ -2,6 +2,9 @@
 # Please check if directories of libraries are correct before cmake.
 
 project (Surface_approximation)
+
+configure_file (../../Packages/OpenNI2/Redist/OpenNI2.dll ../build COPYONLY)
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
