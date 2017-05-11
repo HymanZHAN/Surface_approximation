@@ -771,10 +771,6 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_pat
 	std::vector<int> cone_chain1 = IdentifyChains(canonical_output_cloud, indexes1, marker_chain1);
 	std::vector<int> cone_chain2 = IdentifyChains(canonical_output_cloud, indexes2, marker_chain2);
 
-	//visualizeShapes(flatten_cloud, "Candidate Lines1",hull_indexes1,indexes1);
-	//visualizeShapes(flatten_cloud, "Candidate Lines2",hull_indexes2,indexes2);
-	//visualizeShapes(flatten_cloud, "Chains1",hull_indexes1,cone_chain1);
-	//visualizeShapes(flatten_cloud, "Chains2",hull_indexes2,cone_chain2);
 
 	std::vector<int> indexes;
 	for (int i = 0; i < indexes1.size(); i++)
