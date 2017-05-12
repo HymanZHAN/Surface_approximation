@@ -1055,7 +1055,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FlattenCloud(pcl::PointCloud<pcl::PointXYZ>:
 	//visualizePointCloud(exact_alligned_matrix, "exact_alligned_matrix");
 	/*pcl::PointCloud<pcl::PointXYZ>::Ptr wierd_point_aligned (new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::io::loadPCDFile("C:\\Extract_indices\\build\\wierd_point_aligned.pcd", *wierd_point_aligned);
-	visualizeTwoPointClouds (exact_alligned_matrix, wierd_point_aligned, "Exact aligned cloud with wierd point");*/
+	visualizePointCloud (exact_alligned_matrix, wierd_point_aligned, "Exact aligned cloud with wierd point");*/
 
 	//cout << " sine_angle = " <<sine_angle<< endl<< endl;
 	//cout << " cone_param[6] = " << cone_param[6] << endl<< endl;

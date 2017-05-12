@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <pcl/point_types.h>
 
-enum camera_position { xy, yz, xz };
+
 
 // -----Visualize Point Cloud-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos)
@@ -36,27 +36,28 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<p
 			0, 0, 1);//double up_x, double up_y, double up_z, int viewport = 0
 	}
 	
-
+	return (viewer);
 }
 
-void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string viewer_window_label, char camera_position)
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string viewer_window_label, camera_position camera_pos)
 {
-	// Make use of the 
-	visCloud(cloud, viewer_window_label, camera_position);
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 	
-
+	// Make use of the 
+	viewer = visCloud(cloud, viewer_window_label, camera_pos);
+	
 	// Reset camera according to the input data. Zoom out so that all data points can be viewed.
-	viewer.resetCamera();
+	viewer->resetCamera();
 
-	while (!viewer.wasStopped())
+	while (!viewer->wasStopped())
 	{
-		viewer.spinOnce();
+		viewer->spinOnce();
 	}
-	viewer.close();
+	viewer->close();
 
 }
 
-void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, std::string label_viewer_window)
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, std::string label_viewer_window, camera_position camera_pos)
 {
 	// Window setup
 	pcl::visualization::PCLVisualizer viewer(label_viewer_window);

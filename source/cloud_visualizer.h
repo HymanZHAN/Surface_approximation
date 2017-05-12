@@ -19,7 +19,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView> 
 
-
+enum camera_position { xy, yz, xz };
 // -----Visualize Chains-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesVis (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,std::string label_viewer_windowm,std::vector<int> hull_index,std::vector<int> cone_chain);
 void visualizeShapes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window, std::vector<int> hull_index, std::vector<int> chain);
@@ -32,10 +32,13 @@ void visualizeConvexHull(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize,
 // -----Visualize Point Cloud-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window);
 
-void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window);
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window, camera_position camera_pos);
 
 void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,
-	std::string label_viewer_window);
+	std::string label_viewer_window,
+	camera_position camera_pos);
+
+
 
 #endif
