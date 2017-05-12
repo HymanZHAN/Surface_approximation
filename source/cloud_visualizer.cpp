@@ -5,35 +5,44 @@
 #include <stdlib.h>
 #include <pcl/point_types.h>
 
+enum camera_position { xy, yz, xz };
+
 // -----Visualize Point Cloud-----
-boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, pcl::visualization::PCLVisualizer viewer)
+boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos)
 {
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(label_viewer_window));
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::PointCloud<pcl::PointXYZ>::Ptr);
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addPointCloud(cloud_to_visualize, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 	viewer->addCoordinateSystem(500.0, "global");
 	
-	viewer->setCameraPosition(0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
-							  0, 0, 0,//double view_x, double view_y, double view_z,
-							  0, 0, 1);//double up_x, double up_y, double up_z, int viewport = 0
-
-	viewer->setCameraPosition(0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
-							  0, 0, 0,//double view_x, double view_y, double view_z,
-							  0, 0, 1);//double up_x, double up_y, double up_z, int viewport = 0
-
-	viewer->setCameraPosition(0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
-							  0, 0, 0,//double view_x, double view_y, double view_z,
-							  0, 0, 1);//double up_x, double up_y, double up_z, int viewport = 0
-
-	viewer.resetCamera();
+	// Set camera position according to different input.
+	switch (camera_pos)
+	{
+	case xy:
+		viewer->setCameraPosition(
+			0, 0, 1,//double pos_x, double pos_y, double pos_z,
+			0, 0, -1,//double view_x, double view_y, double view_z,
+			1, 0, 0);//double up_x, double up_y, double up_z, int viewport = 0
+	case yz:		
+		viewer->setCameraPosition(
+			1, 0, 0,//double pos_x, double pos_y, double pos_z,                                    
+			-1, 0, 0,//double view_x, double view_y, double view_z,
+			0, 1, 0);//double up_x, double up_y, double up_z, int viewport = 0
+	case xz:
+		viewer->setCameraPosition(
+			0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
+			0, 1, 0,//double view_x, double view_y, double view_z,
+			0, 0, 1);//double up_x, double up_y, double up_z, int viewport = 0
+	}
+	
 
 }
 
-void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string label_viewer_window)
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string viewer_window_label, char camera_position)
 {
-	pcl::visualization::PCLVisualizer viewer(label_viewer_window);
-	visCloud(cloud, viewer);
+	// Make use of the 
+	visCloud(cloud, viewer_window_label, camera_position);
 	
 
 	// Reset camera according to the input data. Zoom out so that all data points can be viewed.
