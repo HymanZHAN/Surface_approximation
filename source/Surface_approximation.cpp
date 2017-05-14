@@ -193,7 +193,7 @@ int main(int argc, char** argv)
 			std::cerr << "If you want to try   cone   recognition, input 2;" << std::endl;
 			std::cerr << "If you want to quit, input anything else;" << std::endl;
 
-			visualizePointCloud(cloud_filtered, "POINT CLOUD");
+			visualizePointCloud(cloud_filtered, "POINT CLOUD", xy);
 
 			char recognition_type;
 			std::cin >> recognition_type;

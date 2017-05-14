@@ -59,7 +59,7 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 
 		// visualize the fitted points
 		//visualizePointCloud(cloud_p,"found planar patch");
-		visualizePointCloud(*cloud_filtered, cloud_p, "found planar patch");
+		visualizePointCloud(*cloud_filtered, cloud_p, "found planar patch", xy);
 
 		std::cerr << "Input 0 if you think the panel is good enough." << std::endl;
 		std::cerr << "Input 1 if you want to change the tolerence and try plane recognition again." << std::endl;
@@ -219,7 +219,7 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 		extract.filter(*cloud_p);
 		
 
-		visualizePointCloud(*cloud_filtered, cloud_p, "found cylindrical patch");
+		visualizePointCloud(*cloud_filtered, cloud_p, "found cylindrical patch", xy);
 
 		std::cerr << "Input 0 if you think the panel is good enough." << std::endl;
 		std::cerr << "Input 1 if you want to change the tolerence and try cylinder recognition again." << std::endl;
@@ -365,7 +365,7 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 
 		// Visualize the fitted points
 		//visualizePointCloud(cloud_p,"found conical patch");
-		visualizePointCloud(*cloud_filtered, cloud_p, "found conical patch");
+		visualizePointCloud(*cloud_filtered, cloud_p, "found conical patch", xy);
 		
 		std::cerr << "Input 0 if you think the panel is good enough." << std::endl;
 		std::cerr << "Input 1 if you want to change the tolerence and try cone recognition again." << std::endl;

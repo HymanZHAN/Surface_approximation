@@ -6,11 +6,10 @@
 #include <pcl/point_types.h>
 
 
-
 // -----Visualize Point Cloud-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos)
 {
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::PointCloud<pcl::PointXYZ>::Ptr);
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer (window_label));
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addPointCloud(cloud_to_visualize, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");

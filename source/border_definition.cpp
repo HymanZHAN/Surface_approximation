@@ -584,7 +584,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr flattenCylindricalPatch(pcl::PointCloud<pcl:
 	//visualizePointCloud(flattened_cloud, "FLATTENED CYLINDER");
 	
 	
-	visualizePointCloud(flattened_cloud, "flattened_cylinder");
+	visualizePointCloud(flattened_cloud, "flattened_cylinder", xz);
 	return flattened_cloud;
 }
 
@@ -611,7 +611,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr transformCylindricalPatchPoints(pcl::PointCl
 		ptr_output_cloud->at(i).z -= smallest_z;
 	}
 		
-	visualizePointCloud(ptr_output_cloud, "transformed cylinder");
+	visualizePointCloud(ptr_output_cloud, "transformed cylinder", xy);
 	return ptr_output_cloud;
 }
 
