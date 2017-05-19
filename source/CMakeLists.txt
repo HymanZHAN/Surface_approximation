@@ -1,6 +1,5 @@
 # This CMakeList file is for project Surface_approximation.
 # Please check if directories of libraries are correct before cmake.
-# This is a test message for Git Sync
 
 project (Surface_approximation)
 
