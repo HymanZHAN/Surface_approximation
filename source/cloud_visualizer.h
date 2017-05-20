@@ -18,6 +18,11 @@
 #include <QApplication> 
 #include <QGraphicsScene>
 #include <QGraphicsView> 
+#include <pcl/io/pcd_io.h>
+#include <string.h>
+#include <iostream>
+#include <stdlib.h>
+#include <pcl/point_types.h>
 
 enum camera_position { xy, yz, xz };
 // -----Visualize Chains-----
