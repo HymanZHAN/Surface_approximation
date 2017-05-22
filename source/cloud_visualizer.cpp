@@ -1,10 +1,29 @@
 #include "cloud_visualizer.h"
-#include <pcl/io/pcd_io.h>
-#include <string.h>
-#include <iostream>
-#include <stdlib.h>
-#include <pcl/point_types.h>
 
+
+using namespace std;
+
+// -----Relocate point cloud for better visualization-----
+std::vector<double> BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize)
+{
+	//Obtain the bounding box of input point cloud.
+	vector<K::Point_3> cloud_filtered_copy;
+	const int cloud_size = cloud_to_visualize->points.size();
+	for (size_t i = 0; i < cloud_size; ++i)
+	{
+		cloud_filtered_copy.push_back(K::Point_3(cloud_to_visualize->at(i).x, cloud_to_visualize->at(i).y, cloud_to_visualize->at(i).z));
+	}
+	K::Iso_cuboid_3 c3 = CGAL::bounding_box(cloud_filtered_copy.begin(), cloud_filtered_copy.end());
+
+	vector<double> closest_vertex;
+	closest_vertex.push_back(c3.xmin());
+	closest_vertex.push_back(c3.ymin());
+	closest_vertex.push_back(c3.zmin());
+
+	return closest_vertex;
+}
+
+Eigen::
 
 // -----Visualize Point Cloud-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos)

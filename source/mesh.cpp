@@ -3,33 +3,10 @@ obtain the coordinates of vertices and create a new point cloud from them;
 generate random points in each trangle, the number of points being determined according to the area of each triangle and the preset density;
 visualize the two sets of point cloud (vertices and random_points) in the same window with different colors.
 */
-#include <fstream>
-#include <string>
-#include <vector>
-#include <windows.h>
-#include <math.h>
-#include <iostream> 
+
 #include "mesh.h"
-#include "read_parameters.h"
-#include "cloud_visualizer.h"
-//#define NOMINMAX
-#include <pcl/io/pcd_io.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-
-
-#include "utils_sampling.hpp"
-#include "vcg_mesh.hpp"
-#include "io.h"
-#include "read_parameters.h"
 
 using namespace std;
-
-
-
-
 
 //
 //double uniform_deviate (int seed)
@@ -221,13 +198,13 @@ void CreatePointCloud(std::vector<Utils_sampling::Vec3> verts, std::vector<Utils
 	(*cloud_filtered)->height = 1;
 	(*cloud_filtered)->is_dense = false;
 	(*cloud_filtered)->points.resize((*cloud_filtered)->width * (*cloud_filtered)->height);
+	
 	for (size_t i = 0; i < (*cloud_filtered)->points.size(); ++i)
 	{
 		(*cloud_filtered)->points[i].x = verts[i].x;
 		(*cloud_filtered)->points[i].y = verts[i].y;
 		(*cloud_filtered)->points[i].z = verts[i].z;
 	}
-
 
 	(*cloud_normals)->resize((*cloud_filtered)->points.size());
 	for (int i = 0; i < (*cloud_normals)->size(); i++)
@@ -236,6 +213,7 @@ void CreatePointCloud(std::vector<Utils_sampling::Vec3> verts, std::vector<Utils
 		(*cloud_normals)->points[i].normal_y = nors[i].y;
 		(*cloud_normals)->points[i].normal_z = nors[i].z;
 	}
+
 }
 
 void PrepareVertsAndNors(std::vector<float> coorX, std::vector<float> coorY, std::vector<float> coorZ,
@@ -262,7 +240,7 @@ bool ReadASCII(const char *cfilename, std::vector<float> *coorX, std::vector<flo
 	char str[100];
 	double x = 0, y = 0, z = 0;
 
-	std::ifstream in(cfilename, std::ifstream::in);
+	ifstream in(cfilename, ifstream::in);
 
 	if (!in)
 	{
@@ -326,7 +304,7 @@ bool ReadASCII(const char *cfilename, std::vector<float> *coorX, std::vector<flo
 bool ReadBinary(const char *cfilename, std::vector<float> *coorX, std::vector<float> *coorY, std::vector<float> *coorZ)
 {
 	char str[80];
-	std::ifstream in(cfilename, std::ifstream::in | std::ifstream::binary);
+	ifstream in(cfilename, std::ifstream::in | std::ifstream::binary);
 
 	if (!in)
 		return false;
@@ -379,7 +357,7 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 	if (cfilename == NULL)
 		return false;
 
-	std::ifstream in(cfilename, std::ifstream::in);
+	ifstream in(cfilename, std::ifstream::in);
 
 	if (!in)
 		return false;
@@ -390,9 +368,9 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 	in.getline(headStr1, 100, '\n');
 	in.getline(headStr2, 100, '\n');
 
-	std::vector<float> coorX;
-	std::vector<float> coorY;
-	std::vector<float> coorZ;
+	vector<float> coorX;
+	vector<float> coorY;
+	vector<float> coorZ;
 
 	if (headStr1[0] == 's')
 	{
@@ -420,38 +398,21 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 		ReadBinary(cfilename, &coorX, &coorY, &coorZ);
 	}
 
-	//std::vector<float> random_point_x;
-	//std::vector<float> random_point_y;
-	//std::vector<float> random_point_z;
-	//std::vector<float> random_point_normal_x;
-	//std::vector<float> random_point_normal_y;
-	//std::vector<float> random_point_normal_z;
-	std::vector<Utils_sampling::Vec3> verts;
-	std::vector<Utils_sampling::Vec3> nors;
-	std::vector<int> tris;
-	std::vector<Utils_sampling::Vec3> samples_pos;
-	std::vector<Utils_sampling::Vec3> samples_nor;
-	/*RandomPointGeneraterInTriangles(coorX, coorY, coorZ, &random_point_x, &random_point_y, &random_point_z,
-	&random_point_normal_x, &random_point_normal_y, &random_point_normal_z,
-	&verts, &nors, &tris);*/
+
+	vector<Utils_sampling::Vec3> verts;
+	vector<Utils_sampling::Vec3> nors;
+	vector<int> tris;
+	vector<Utils_sampling::Vec3> samples_pos;
+	vector<Utils_sampling::Vec3> samples_nor;
+
 	PrepareVertsAndNors(coorX, coorY, coorZ, &verts, &nors, &tris);
 	Utils_sampling::poisson_disk(POISSON_DISK_SAMPLING_RADIUS, 1000, verts, nors, tris, samples_pos, samples_nor);
-	/*outputExcel(samples_pos, samples_nor);*/
 
 	string path_temporary = PATH_TEMPORARY_FILE + "random_points.pcd";
 	char* path_temporary_file = new char[path_temporary.size() + 1];
 	strcpy(path_temporary_file, path_temporary.c_str());
 	CreatePointCloud(samples_pos, samples_nor, path_temporary, cloud_filtered, cloud_normals);
-	/*createpointcloud(random_point_x, random_point_y, random_point_z, path_temporary_file);
-
-	createnormalsofallpoints(random_point_normal_x, random_point_normal_y, random_point_normal_z, path_temporary_file);
-
-	pcl::visualization::PCLVisualizer * mesh_viewer_ = new pcl::visualization::PCLVisualizer("Mesh View");
-
-	mesh_viewer_->addPolygonMesh(triangles, "mesh");
-
-	mesh_viewer_->getRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActors()->GetLastActor()->GetProperty()->SetInterpolationToPhong();*/
-
+	
 	return true;
 }
 

@@ -4,12 +4,17 @@
 #include <iterator>
 #include <list>
 #include <direct.h>
+#include <vector>
 using namespace std;
 #define NOMINMAX
-//CGAL headers
+
+//---CGAL headers---
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/convex_hull_2.h>
+#include "ui_Alpha_shapes_2.h"
+#include <CGAL/Qt/resources.h>
 
+//---PCL headers---
 #include <pcl/common/geometry.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/features/normal_3d.h>
@@ -35,7 +40,7 @@ using namespace std;
 #include <boost/property_map/property_map.hpp>
 //#undef BOOST_NO_CXX11_SCOPED_ENUMS
 
-
+//---Our own headers---
 #include "read_parameters.h"
 #include "cloud_visualizer.h"
 #include "patch_recognition.h"
@@ -45,11 +50,6 @@ using namespace std;
 #include "segmentation.h"
 #include "io.h"
 #include "mesh.h"
-
-#include "ui_Alpha_shapes_2.h"
-#include <CGAL/Qt/resources.h>
-
-using namespace std;
 
 
 bool IsSupportPos(std::string* load_file)
@@ -103,13 +103,14 @@ int main(int argc, char** argv)
 	}
 		
 
+
 	//Read the parameters from the external text file
 	if (!readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt"))
 	{
 		return(0);
 	}
 
-	string load_file;
+	string load_file, load_file_copy;
 	while (getline(cin, load_file))
 	{
 		//std::cerr << "Input a STL file:" << std::endl;
@@ -119,52 +120,12 @@ int main(int argc, char** argv)
 			continue;
 		}
 
-
-		/*int length_of_load_file = load_file.size();
-		bool flag_space = false;
-		for (int i = 0; i < length_of_load_file - 1; i++)
-		{
-		if (load_file[i] == ' ')
-		{
-		flag_space = true;
-		}
-		}
-		if (flag_space == true)
-		{
-		std::cout << "ERROR: File name contains space." << std::endl;
-		continue;
-		}*/
-
-
-
-
-		/*string::size_type pos = 0;
-		while ((pos = load_file.find_first_of('\\', pos)) != string::npos)
-		{
-		load_file.insert(pos, "\\");
-		pos = pos + 2;
-		}*/
-
-		//cout << "1load_file:" << load_file << endl;
-
-		//load_file = load_file + ".stl";
-		//string load_path = "C:\\Extract_indices\\STL\\" + load_file;
-
-
+		
 		// Define the point clouds for points and for normals that will be used in the process
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
 		ReadSTLFile(load_file.c_str(), &cloud_filtered, &cloud_normals);
-		//pcl::io::loadPCDFile(PATH_PCD_DOC, *cloud_filtered);
-		//// Fill the initial point clouds reading from the PCD file
-		//if (!fillClouds(PATH_PCD_DOC, cloud_filtered, cloud_normals))
-		//{
-		//	return (-1);
-		//}
-
-		// Define the object for writing in output PCD files the segmented sub clouds
-		//pcl::PCDWriter writer;
-
+		
 		// Visualize the initial point cloud
 		//visualizePointCloud(cloud_filtered,"INITIAL POINT CLOUD");	
 

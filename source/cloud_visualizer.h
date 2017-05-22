@@ -8,16 +8,26 @@
 #ifndef VISUALIZER_H
 #define VISUALIZER_H
 
-#include <pcl/visualization/cloud_viewer.h>
+#include <string.h>
 #include <iostream>
+#include <vector>
+#include <stdlib.h>
+
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
 #include <boost/format.hpp>
-#include <QtGui>
+
 #include <CGAL/Qt/GraphicsViewNavigation.h>
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/bounding_box.h>
+#include <QtGui>
 #include <QLineF>
 #include <QRectF>
 #include <QApplication> 
 #include <QGraphicsScene>
 #include <QGraphicsView> 
+
 
 enum camera_position { xy, yz, xz };
 // -----Visualize Chains-----
