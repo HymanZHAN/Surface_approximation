@@ -36,14 +36,53 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr relocate_point_cloud(const pcl::PointCloud<p
 	return cloud_translated;
 }
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr relocate_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2)
+{
+	// Translate the two sets of point cloud based on cloud1's bounding box
+
+	vector<K::Point_3> cloud_filtered_copy1;
+
+	const int cloud_size1 = cloud1->points.size();
+	const int cloud_size2 = cloud2->points.size();
+
+	for (size_t i = 0; i < cloud_size1; ++i)
+	{
+		cloud_filtered_copy1.push_back(K::Point_3(cloud1->at(i).x, cloud1->at(i).y, cloud1->at(i).z));
+	}
+	K::Iso_cuboid_3 c3 = CGAL::bounding_box(cloud_filtered_copy1.begin(), cloud_filtered_copy1.end());
+
+
+	// Pass from cloud_filtered_copy to cloud_translated.
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated1(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated2(new pcl::PointCloud<pcl::PointXYZ>);
+
+	cloud_translated1->resize(cloud_size1);
+	for (size_t i = 0; i < cloud_size1; i++)
+	{
+		cloud_translated1->points[i].x = cloud1->points[i].x - c3.xmin();
+		cloud_translated1->points[i].y = cloud1->points[i].y - c3.ymin();
+		cloud_translated1->points[i].z = cloud1->points[i].z - c3.zmin();
+	}
+
+	cloud_translated2->resize(cloud_size2);
+	for (size_t i = 0; i < cloud_size2; i++)
+	{
+		cloud_translated2->points[i].x = cloud2->points[i].x - c3.xmin();
+		cloud_translated2->points[i].y = cloud2->points[i].y - c3.ymin();
+		cloud_translated2->points[i].z = cloud2->points[i].z - c3.zmin();
+	}
+
+	return cloud_translated2;
+}
 
 // -----Visualize Point Cloud-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos)
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated = relocate_point_cloud(cloud_to_visualize);
+	
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer (window_label));
 	viewer->setBackgroundColor(0, 0, 0);
-	viewer->addPointCloud(cloud_to_visualize, "sample cloud");
+	viewer->addPointCloud(cloud_translated, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 	viewer->addCoordinateSystem(500.0, "global");
 	
@@ -90,6 +129,11 @@ void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string 
 
 void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, std::string label_viewer_window, camera_position camera_pos)
 {
+	// Translation for better visualization
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1_relocated = relocate_point_cloud(cloud1);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2_relocated = relocate_point_cloud(cloud1, cloud2);
+
+
 	// Window setup
 	pcl::visualization::PCLVisualizer viewer(label_viewer_window);
 	viewer.setBackgroundColor(0, 0, 0);
@@ -99,12 +143,12 @@ void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointC
 							 0, 1, 0);//double up_x, double up_y, double up_z, int viewport = 0);
 
 	// Add the first cloud: size 2, white(default)
-	viewer.addPointCloud(cloud1, "cloud1");
+	viewer.addPointCloud(cloud1_relocated, "cloud1");
 	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud1");
 	// Define color "red"
-	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> red(cloud2, 255, 0, 0);
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> red(cloud2_relocated, 255, 0, 0);
 	// Add the second cloud: size 3, red (defined)
-	viewer.addPointCloud<pcl::PointXYZ>(cloud2, red, "cloud2");
+	viewer.addPointCloud<pcl::PointXYZ>(cloud2_relocated, red, "cloud2");
 	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud2");
 
 	//Auto recenters the view.
@@ -141,10 +185,13 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesVis(pcl::PointCloud<p
 	std::vector<int> hull_index,
 	std::vector<int> chain)
 {
+	// Translate the cloud for better viewing 
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated = relocate_point_cloud(cloud);
+
 	// -----Open 3D viewer and add point cloud-----
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(label_viewer_window));
 	viewer->setBackgroundColor(0, 0, 0);
-	viewer->addPointCloud<pcl::PointXYZ>(cloud, "sample cloud");
+	viewer->addPointCloud<pcl::PointXYZ>(cloud_translated, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 	viewer->addCoordinateSystem(500.0, "global");
 	viewer->setCameraPosition(0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
@@ -156,7 +203,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesVis(pcl::PointCloud<p
 	int j = 0;
 	for (j = 0; j < hull_index.size() - 1; j++)
 	{
-		viewer->addLine<pcl::PointXYZ>(cloud->points[hull_index[j]], cloud->points[hull_index[j + 1]], std::to_string(static_cast<long long>(j)));
+		viewer->addLine<pcl::PointXYZ>(cloud_translated->points[hull_index[j]], cloud_translated->points[hull_index[j + 1]], std::to_string(static_cast<long long>(j)));
 	}
 
 
@@ -170,7 +217,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesVis(pcl::PointCloud<p
 	}
 	for (int i = 0; i < chain.size(); i += 2)
 	{
-		viewer->addLine<pcl::PointXYZ>(cloud->points[chain[i]], cloud->points[chain[i + 1]], colors[i + 2], colors[i + 3], 0, std::to_string(static_cast<long long>(i + j + 1)));
+		viewer->addLine<pcl::PointXYZ>(cloud_translated->points[chain[i]], cloud_translated->points[chain[i + 1]], colors[i + 2], colors[i + 3], 0, std::to_string(static_cast<long long>(i + j + 1)));
 	}
 	return (viewer);
 }
@@ -195,12 +242,15 @@ void visualizeConvexHull(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize,
 
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visConvex(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string label_viewer_window, std::vector<int> hull_index)
 {
+	// Translate the point cloud for better visualization
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated = relocate_point_cloud(cloud);
+	
 	// --------------------------------------------
 	// -----Open 3D viewer and add point cloud-----
 	// --------------------------------------------
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(label_viewer_window));
 	viewer->setBackgroundColor(0, 0, 0);
-	viewer->addPointCloud<pcl::PointXYZ>(cloud, "sample cloud");
+	viewer->addPointCloud<pcl::PointXYZ>(cloud_translated, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
 	viewer->addCoordinateSystem(500.0, "global");
 	viewer->setCameraPosition(0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
@@ -215,9 +265,9 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> visConvex(pcl::PointCloud<p
 	int j = 0;
 	for (j = 0; j < hull_index.size() - 1; j++)
 	{
-		viewer->addLine<pcl::PointXYZ>(cloud->points[hull_index[j]], cloud->points[hull_index[j + 1]], std::to_string(static_cast<long long>(j)));
+		viewer->addLine<pcl::PointXYZ>(cloud_translated->points[hull_index[j]], cloud_translated->points[hull_index[j + 1]], std::to_string(static_cast<long long>(j)));
 	}
-	viewer->addLine<pcl::PointXYZ>(cloud->points[hull_index[j]], cloud->points[hull_index[0]], std::to_string(static_cast<long long>(j)));
+	viewer->addLine<pcl::PointXYZ>(cloud_translated->points[hull_index[j]], cloud_translated->points[hull_index[0]], std::to_string(static_cast<long long>(j)));
 
 	viewer->resetCamera();
 	return (viewer);
