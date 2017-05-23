@@ -4,10 +4,11 @@
 using namespace std;
 
 // -----Relocate point cloud for better visualization-----
-std::vector<double> BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize)
+pcl::PointCloud<pcl::PointXYZ>::Ptr relocate_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize)
 {
-	//Obtain the bounding box of input point cloud.
 	vector<K::Point_3> cloud_filtered_copy;
+	
+	// Obtain closest vertex and build the transformation matrix from it.
 	const int cloud_size = cloud_to_visualize->points.size();
 	for (size_t i = 0; i < cloud_size; ++i)
 	{
@@ -15,19 +16,31 @@ std::vector<double> BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_vis
 	}
 	K::Iso_cuboid_3 c3 = CGAL::bounding_box(cloud_filtered_copy.begin(), cloud_filtered_copy.end());
 
-	vector<double> closest_vertex;
-	closest_vertex.push_back(c3.xmin());
-	closest_vertex.push_back(c3.ymin());
-	closest_vertex.push_back(c3.zmin());
+	//// Do the translation.
+	//for (size_t i = 0; i < cloud_size; i++)
+	//{
+	//	cloud_filtered_copy[i] = cloud_filtered_copy[i].x - c3.xmin();
+	//}
 
-	return closest_vertex;
+	// Pass from cloud_filtered_copy to cloud_translated.
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated (new pcl::PointCloud<pcl::PointXYZ>);
+	cloud_translated->resize(cloud_size);
+	for (size_t i = 0; i < cloud_size; i++)
+	{
+		cloud_translated->points[i].x = cloud_to_visualize->points[i].x - c3.xmin();
+		cloud_translated->points[i].y = cloud_to_visualize->points[i].y - c3.ymin();
+		cloud_translated->points[i].z = cloud_to_visualize->points[i].z - c3.zmin();
+	}
+
+
+	return cloud_translated;
 }
 
-Eigen::
 
 // -----Visualize Point Cloud-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos)
 {
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated = relocate_point_cloud(cloud_to_visualize);
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer (window_label));
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addPointCloud(cloud_to_visualize, "sample cloud");
