@@ -426,6 +426,7 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 	//We flatten the cloud corresponding to the cylindrical patch 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, cyl_param);
+
 	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(flattened_cloud, "flattened_cylinder", (*count_flattened_cloud)++));
 	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud= transformConicalPatchPoints(conical_patch_cloud, cone_param);	
@@ -465,6 +466,11 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 
 	//We join the candidate lines in chains of candidate lines, whenever they are adjacent and with similar orientations
 	std::vector<int> cyl_chain = IdentifyChains(transformed_cyl_patch_cloud, indexes, marker_chain);
+	if (DefineGoodBorderCylinder(flattened_cloud, cyl_chain) )
+	{
+
+	}
+
 	const int num_cyl_chains = cyl_chain.size();
 	const int num_marker_chains = marker_chain.size();
 
@@ -488,6 +494,19 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 
 	return cyl_data;
 }
+
+bool DefineGoodBorderCylinder(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<int> cyl_chain)
+{
+	ResequenceChain(cyl_chain);
+
+	return true;
+}
+
+void ResequenceChain(std::vector<int> cyl_chain)
+{
+
+}
+
 
 std::vector<point> CylinderCandiateLines(std::vector<point> convex_hull_points, std::vector<float> cyl_param)
 {
