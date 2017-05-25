@@ -24,6 +24,9 @@
 #include <boost/property_map/property_map.hpp>
 
 
+
+
+
 void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
 	int threshold_inliers, int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
@@ -40,7 +43,7 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
 		pcl::ExtractIndices<pcl::Normal> extract_normals;
 
-		readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt");
+		readParameterFile(PATH_HEAD + "\\source\\input extract indices.txt");
 		// ---> planar segmentation
 		// create the segmentation object for plane
 		pcl::SACSegmentation<pcl::PointXYZ> seg;
@@ -194,7 +197,7 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 		// Create the filtering object
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
 		pcl::ExtractIndices<pcl::Normal> extract_normals;
-		readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt");
+		readParameterFile(PATH_HEAD + "\\source\\input extract indices.txt");
 		// create the segmentation object
 		pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_cyl;
 		//pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
@@ -363,7 +366,7 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 		// Create the filtering object
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
 		pcl::ExtractIndices<pcl::Normal> extract_normals;
-		readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt");
+		readParameterFile(PATH_HEAD + "\\source\\input extract indices.txt");
 		// Create the segmentation object for cone
 		pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_cone;
 		// Set all the parameters for cone segmentation object
@@ -493,10 +496,3 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 	}
 }
 
-std::string exePath()
-{
-	char buffer[MAX_PATH];
-	GetModuleFileName(NULL, buffer, MAX_PATH);
-	std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-	return std::string(buffer).substr(0, pos);
-}

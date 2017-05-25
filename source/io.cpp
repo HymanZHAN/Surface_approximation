@@ -1,6 +1,8 @@
 
 #include "io.h"
 
+std::string PATH_HEAD = exe_Path() + "\\..\\..";
+
 std::string exe_Path()
 {
 	char buffer[MAX_PATH];
@@ -32,15 +34,28 @@ bool fillClouds(std::string pcd_path, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud
 
 void outputCloudOnExcel(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud)
 {
-	std::ifstream indata;
+	//std::ifstream indata;
 	std::ofstream outdata;
-	std::string name_file = exe_Path() + "\\..\\..\\temp\\" + name_cloud + ".csv";
+	std::string name_file = PATH_HEAD + "\\temp\\" + name_cloud + ".csv";
 	outdata.open(name_file, ios::app);
 
 	const int num_points = cloud->points.size();
 	for (std::size_t i = 0; i < num_points; ++i)
 	{
 		outdata << cloud->at(i).x << "," << cloud->at(i).y << "," << cloud->at(i).z << endl;
+	}
+}
+
+void outputCloudOnPTS(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud)
+{
+	std::ofstream outdata;
+	std::string name_file = PATH_HEAD + "\\temp\\" + name_cloud + ".pts";
+	outdata.open(name_file, ios::app);
+
+	const int num_points = cloud->points.size();
+	for (std::size_t i = 0; i < num_points; ++i)
+	{
+		outdata << cloud->at(i).x << " " << cloud->at(i).y << " " << cloud->at(i).z << endl;
 	}
 }
 
@@ -68,6 +83,7 @@ void outputExcel(pcl::ModelCoefficients::Ptr coefficients, std::string name_clou
 	
 }
 
+
 std::string outputCloudOnTXT(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud, int count)
 {
 	std::ofstream outdata;
@@ -75,7 +91,7 @@ std::string outputCloudOnTXT(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::str
 	std::string str;
 	ss << count;
 	ss >> str;
-	std::string name_file = exe_Path() + "\\..\\..\\temp\\" + str + "_"+ name_cloud + ".txt";
+	std::string name_file = PATH_HEAD + "\\temp\\" + str + "_"+ name_cloud + ".txt";
 
 	outdata.open(name_file, ios::out);
 	outdata.clear();

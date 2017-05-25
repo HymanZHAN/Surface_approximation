@@ -25,9 +25,15 @@
 #include "alpha_shape_polygons.h"
 
 
+extern std::string PATH_HEAD;
+
+std::string exe_Path();
+
 bool fillClouds(std::string pcd_path, pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,pcl::PointCloud<pcl::Normal>::Ptr &cloud_normals1);
 
 void outputCloudOnExcel(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud);
+
+void outputCloudOnPTS(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud);
 
 void outputCloudOnExcel(pcl::ModelCoefficients::Ptr coefficients, std::string name_cloud, std::string type);
 

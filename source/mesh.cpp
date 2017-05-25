@@ -442,6 +442,7 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 	char* path_temporary_file = new char[path_temporary.size() + 1];
 	strcpy(path_temporary_file, path_temporary.c_str());
 	CreatePointCloud(samples_pos, samples_nor, path_temporary, cloud_filtered, cloud_normals);
+	outputCloudOnPTS(cloud_filtered, "cloud_filtered");
 	/*createpointcloud(random_point_x, random_point_y, random_point_z, path_temporary_file);
 
 	createnormalsofallpoints(random_point_normal_x, random_point_normal_y, random_point_normal_z, path_temporary_file);
