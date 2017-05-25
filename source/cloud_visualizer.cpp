@@ -16,12 +16,6 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr relocate_point_cloud(const pcl::PointCloud<p
 	}
 	K::Iso_cuboid_3 c3 = CGAL::bounding_box(cloud_filtered_copy.begin(), cloud_filtered_copy.end());
 
-	//// Do the translation.
-	//for (size_t i = 0; i < cloud_size; i++)
-	//{
-	//	cloud_filtered_copy[i] = cloud_filtered_copy[i].x - c3.xmin();
-	//}
-
 	// Pass from cloud_filtered_copy to cloud_translated.
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_translated (new pcl::PointCloud<pcl::PointXYZ>);
 	cloud_translated->resize(cloud_size);

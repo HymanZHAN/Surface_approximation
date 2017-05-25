@@ -55,7 +55,7 @@
 80.0
 50
 .5
-20
+10
 D:\\Development\\Surface_approximation\\temp\\
 0.8
 0.8

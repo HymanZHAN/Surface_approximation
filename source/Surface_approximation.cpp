@@ -155,6 +155,7 @@ int main(int argc, char** argv)
 			std::cerr << "If you want to quit, input anything else;" << std::endl;
 
 			visualizePointCloud(cloud_filtered, "POINT CLOUD", xy);
+			exportCloudAsPTS(cloud_filtered, "temp_pts_file");
 
 			char recognition_type;
 			std::cin >> recognition_type;

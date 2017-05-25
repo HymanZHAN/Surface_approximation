@@ -31,6 +31,8 @@ void outputCloudOnExcel(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string n
 
 void outputCloudOnExcel(pcl::ModelCoefficients::Ptr coefficients, std::string name_cloud, std::string type);
 
+std::string exportCloudAsPTS(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud);
+
 std::string outputCloudOnTXT(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud, int count);
 
 

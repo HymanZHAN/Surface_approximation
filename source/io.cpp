@@ -84,38 +84,29 @@ std::string outputCloudOnTXT(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::str
 	outdata << num_points << endl;
 	for (std::size_t i = 0; i < num_points; ++i)
 	{
+		//outdata << cloud->at(i).x << " " << cloud->at(i).y << " " << cloud->at(i).z << " " << endl;
 		outdata << cloud->at(i).x << " " << cloud->at(i).z << " " << endl;
 	}
 	return name_file;
 }
-//
-//void outputCloudOnTXT_PtNumber(Polygon_2 polygon)
-//{
-//	std::ofstream outdata;
-//	std::string name_file = "C:\\Alpha_shapes_2\\Polygon.txt";
-//
-//	outdata.open(name_file, std::ios::out);
-//	outdata.clear();
-//
-//	outdata << polygon << std::endl;
-//	outdata << std::endl;
-//}
-//
-//void outputCloudOnTXT_PtNumber(std::vector<Alpha_shape_2::Point> alpha_shape_points)
-//{
-//	std::ofstream outdata;
-//	std::string name_file = "C:\\Alpha_shapes_2\\alpha_shape_points.txt";
-//
-//	outdata.open(name_file, std::ios::out);
-//	outdata.clear();
-//
-//	outdata << alpha_shape_points.size() << std::endl;
-//	for (int i = 0; i < alpha_shape_points.size(); i++)
-//	{
-//		outdata << alpha_shape_points[i].x << std::endl;
-//
-//	}
-//	outdata << polygon << std::endl;
-//	outdata << std::endl;
-//}
+
+std::string exportCloudAsPTS(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string name_cloud)
+{
+	std::ofstream outdata;
+	std::stringstream ss;
+	std::string name_file = exe_Path() + "\\..\\..\\temp\\" + name_cloud + ".pts";
+
+	outdata.open(name_file, ios::out);
+	outdata.clear();
+
+	const int num_points = cloud->points.size();
+	outdata << num_points << endl;
+	for (std::size_t i = 0; i < num_points; ++i)
+	{
+		outdata << cloud->at(i).x << " " << cloud->at(i).y << " " << cloud->at(i).z << " " << endl;
+	}
+	return name_file;
+}
+
+
 
