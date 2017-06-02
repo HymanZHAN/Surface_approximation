@@ -75,6 +75,9 @@ typedef Polygon_2::Edge_const_iterator EdgeIterator;
 typedef std::list<Polygon_2> Polygon_list;
 
 //class declaration and definition
+extern struct SPoint;
+
+extern struct SEdge;
 
 
 //member function declaration

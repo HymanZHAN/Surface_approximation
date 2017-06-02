@@ -24,6 +24,8 @@ visualize the two sets of point cloud (vertices and random_points) in the same w
 #include "vcg_mesh.hpp"
 #include "io.h"
 #include "read_parameters.h"
+#include "alpha_shape_polygons.h"
+#include <original_point_cloud_boundary.h>
 
 using namespace std;
 
@@ -374,7 +376,9 @@ bool ReadBinary(const char *cfilename, std::vector<float> *coorX, std::vector<fl
 	return true;
 }
 
-bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals)
+bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, 
+	             pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, 
+	             pcl::PointCloud<pcl::PointXYZ>::Ptr *original_point_cloud_boundary)
 {
 	if (cfilename == NULL)
 		return false;
@@ -420,6 +424,7 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 		ReadBinary(cfilename, &coorX, &coorY, &coorZ);
 	}
 
+	*original_point_cloud_boundary = FindOrifinalPointCloudBoundary(coorX, coorY, coorZ);
 	//std::vector<float> random_point_x;
 	//std::vector<float> random_point_y;
 	//std::vector<float> random_point_z;

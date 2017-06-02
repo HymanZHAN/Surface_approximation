@@ -5,7 +5,7 @@
 #include <list>
 #include <direct.h>
 using namespace std;
-#define NOMINMAX
+//#define NOMINMAX
 //CGAL headers
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/convex_hull_2.h>
@@ -155,7 +155,10 @@ int main(int argc, char** argv)
 		// Define the point clouds for points and for normals that will be used in the process
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
-		ReadSTLFile(load_file.c_str(), &cloud_filtered, &cloud_normals);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr original_point_cloud_boundary;
+		ReadSTLFile(load_file.c_str(), &cloud_filtered, &cloud_normals,&original_point_cloud_boundary);
+		visualizePointCloud(cloud_filtered, original_point_cloud_boundary, "boundary", xy);
+		//pcl::io::savePCDFileASCII(PATH_HEAD + "\\temp\\test_pcd.pcd", *cloud_filtered);
 		//pcl::io::loadPCDFile(PATH_PCD_DOC, *cloud_filtered);
 		//// Fill the initial point clouds reading from the PCD file
 		//if (!fillClouds(PATH_PCD_DOC, cloud_filtered, cloud_normals))

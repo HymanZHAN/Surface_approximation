@@ -318,7 +318,7 @@ std::vector<SEdge> loadEdgeFromTXT(std::string path, int num_edges)
 	return edge_list;
 }
 
-std::vector<SEdge> loadEdgeFromTXT(std::vector<Alpha_shape_2::Point> alpha_shape_edges)
+std::vector<SEdge> loadEdge(std::vector<Alpha_shape_2::Point> alpha_shape_edges)
 {
 	std::vector<std::vector<float>> edge_points_matrix;
 	int num_edges = alpha_shape_edges.size() / 2;
@@ -759,8 +759,8 @@ double getAlphaShape(std::string path)
 	//Future modificaiton: output directly from polygon_list
 	//outputEdgeOnTXT(alpha_shape_edges);
 	//std::vector<SEdge> edge_list = loadEdgeFromTXT("C:\\Alpha_shapes_2\\alpha_shape_edges.txt", alpha_shape_edges.size() / 2);
-	std::vector<SEdge> edge_list = loadEdgeFromTXT(alpha_shape_edges);
-	outputEdgeList(edge_list);
+	std::vector<SEdge> edge_list = loadEdge(alpha_shape_edges);
+	//outputEdgeList(edge_list);
 	Polygon_list polygon_list = polygonPartition(edge_list);
 	//visualizePolygonList(polygon_list);
 	double total_area = computePolygonArea(polygon_list);
