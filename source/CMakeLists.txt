@@ -3,7 +3,7 @@
 
 project (Surface_approximation)
 
-configure_file (../../Packages/OpenNI2/Redist/OpenNI2.dll ../build COPYONLY)
+#configure_file (../../Packages/OpenNI2/Redist/OpenNI2.dll ../build COPYONLY)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -58,13 +58,13 @@ qt5_use_modules (Surface_approximation Xml Script OpenGL Svg)
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS Surface_approximation )
 
 # Link with Qt libraries
-target_link_libraries( Surface_approximation ${QT_LIBRARIES} )
+target_link_libraries (Surface_approximation ${QT_LIBRARIES} )
 # Link with CGAL
-target_link_libraries( Surface_approximation ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES})
+target_link_libraries (Surface_approximation ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES})
 # Link with PCL
 target_link_libraries (Surface_approximation ${PCL_LIBRARIES})
 # Link with OpenCV libraries
-target_link_libraries(Surface_approximation ${OpenCV_LIBS})
+target_link_libraries (Surface_approximation ${OpenCV_LIBS})
 
 else()
 
