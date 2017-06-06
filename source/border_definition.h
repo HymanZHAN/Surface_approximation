@@ -13,12 +13,12 @@
 #include <random>
 #include <pcl/io/pcd_io.h>
 #include <pcl/PointIndices.h>
+#include <pcl/visualization/common/actor_map.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/geometries/adapted/boost_tuple.hpp>
-
-#include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/io/wkt/wkt.hpp>
 

@@ -1,11 +1,4 @@
-#include <iostream>
-#include <vector>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <limits>
 
-#include <pcl/sample_consensus/method_types.h>
 #include "read_parameters.h"
 
 //std::string PATH_PCD_DOC;

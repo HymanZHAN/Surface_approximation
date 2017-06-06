@@ -7,9 +7,15 @@
 // By convention, we use the name of the header file.
 #ifndef READ_PARAMETERS_H
 #define READ_PARAMETERS_H
-
-#include <string>
+#include <iostream>
 #include <vector>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <limits>
+
+#include <pcl/sample_consensus/method_types.h>
+
 
 //extern std::string PATH_PCD_DOC;
 extern int PLANE_METHOD_TYPE;

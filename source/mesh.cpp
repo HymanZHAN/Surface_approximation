@@ -3,27 +3,13 @@ obtain the coordinates of vertices and create a new point cloud from them;
 generate random points in each trangle, the number of points being determined according to the area of each triangle and the preset density;
 visualize the two sets of point cloud (vertices and random_points) in the same window with different colors.
 */
-#include <fstream>
-#include <string>
-#include <vector>
-#include <windows.h>
-#include <math.h>
-#include <iostream> 
+
 #include "mesh.h"
-#include "read_parameters.h"
-#include "cloud_visualizer.h"
+
 //#define NOMINMAX
-#include <pcl/io/pcd_io.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 
 
-#include "utils_sampling.hpp"
-#include "vcg_mesh.hpp"
-#include "io.h"
-#include "read_parameters.h"
+
 
 using namespace std;
 

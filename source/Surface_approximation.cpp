@@ -48,7 +48,7 @@ using namespace std;
 
 #include "ui_Alpha_shapes_2.h"
 #include <CGAL/Qt/resources.h>
-#include <GL/glut.h>
+//#include <CGAL/glut.h>
 
 using namespace std;
 
