@@ -39,6 +39,8 @@
 #include <boost/property_map/property_map.hpp>
 
 
+std::string exePath();
+
 void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, 
 	                  int threshold_inliers, int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds);
 

@@ -5,7 +5,7 @@
 #include <list>
 #include <direct.h>
 using namespace std;
-#define NOMINMAX
+//#define NOMINMAX
 //CGAL headers
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/convex_hull_2.h>
@@ -48,7 +48,7 @@ using namespace std;
 
 #include "ui_Alpha_shapes_2.h"
 #include <CGAL/Qt/resources.h>
-#include <GL/glut.h>
+//#include <GL/glut.h>
 
 using namespace std;
 

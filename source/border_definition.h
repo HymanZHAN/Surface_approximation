@@ -41,10 +41,6 @@
 
 
 
-//#include "C:\Extract_indices\build\geometry_tools.h"
-//#include "C:\Extract_indices\build\cloud_visualizer.h"
-//#include "C:\Extract_indices\build\read_parameters.h"
-
 
 #include <pcl/surface/convex_hull.h>
 //#include <C:\PCl\pcl\surface\include\pcl\surface\impl\convex_hull.hpp>
@@ -52,7 +48,8 @@
 typedef boost::tuple<double, double> point;
 typedef boost::geometry::model::polygon<point> polygon;
 
-struct result {
+struct result 
+{
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_one;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_two;
 	Eigen::MatrixXf indexes_one;
@@ -69,13 +66,12 @@ struct result {
 BOOST_GEOMETRY_REGISTER_BOOST_TUPLE_CS(cs::cartesian)
 
 // Functions for the computation of the Minimum Area Rectangle (NOT CURRENTLY USED)
-void getMinAreaRectOfPlanarPatch(
-	pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param);
+//void getMinAreaRectOfPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param);
 
 cv::RotatedRect getMinAreaRectForPlanarPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud);
 //
 
-Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param, bool *good_patch_marker_plane, int *count_flattened_cloud);
+Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param, bool *good_patch_marker_plane);
 
 // It transforms the set of points corresponding to a PLANAR patch, moving them
 // such that z axis is aligned with the normal to the plane and xy-plane 
@@ -113,7 +109,7 @@ std::vector<int> IdentifyPlaneChains(pcl::PointCloud<pcl::PointXYZ>::Ptr plane_c
 // column one represents the index of orignal 3D cloud that can form first vertix of a candidate line
 // column two represents the index of orignal 3D cloud that can form second vertix of a candidate line
 // Column three represnt the chain number, untill the chain number is not changed it implies that the vertixes can be merged and one candidate line can be formed
-Eigen::MatrixXf  MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindrical_patch_cloud, std::vector<float> cone_param, bool *good_patch_marker_cylinder, int *count_flattened_cloud);
+Eigen::MatrixXf  MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindrical_patch_cloud, std::vector<float> cone_param, bool *good_patch_marker_cylinder);
 
 // This function takes input convex hull points as its input and return of vector of points which can form candidate lines when joined together 
 std::vector<point> CylinderCandiateLines (std::vector<point> convex_hull_points,std::vector<float> cone_param);
@@ -146,7 +142,7 @@ std::vector<float> computePlanePassingThroughPointWithGivenNormal(Eigen::Vector3
 // column one represents the index of orignal 3D cloud that can form first vertix of a candidate line
 // column two represents the index of orignal 3D cloud that can form second vertix of a candidate line
 // Column three represnt the chain number, untill the chain number is not changed it implies that the vertixes can be merged and one candidate line can be formed
-Eigen::MatrixXf  MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_patch_cloud, std::vector<float> plane_param, bool *good_patch_marker_cone, int *count_flattened_cloud);
+Eigen::MatrixXf  MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_patch_cloud, std::vector<float> plane_param, bool *good_patch_marker_cone);
 
 // This function will try to merge the candidate lines to form a continious chains 
 std::vector<int> IdentifyChains(pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud ,std::vector<int> &indexes,std::vector<int> &marker_chain);

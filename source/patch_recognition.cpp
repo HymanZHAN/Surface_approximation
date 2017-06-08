@@ -1,8 +1,6 @@
 #include "patch_recognition.h"
 
 
-
-
 void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
 	int threshold_inliers, int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
@@ -84,7 +82,7 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 
 
 		bool good_patch_marker_plane = 1;
-		Eigen::MatrixXf temp_patch_data = MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane);
 		//MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
 		if (good_patch_marker_plane == 0)
 		{
@@ -245,7 +243,7 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 
 		// determine the possible shared border lines of the patch
 		bool good_patch_marker_cylinder = 1;
-		Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder);
 		
 		if (good_patch_marker_cylinder == 0)
 		{
@@ -390,7 +388,7 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 
 		// Determine the possible shared border lines of the patch
 		bool good_patch_marker_cone = 1;
-		Eigen::MatrixXf temp_patch_data = MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone);
 		// MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
 		if (good_patch_marker_cone == 0)
 		{

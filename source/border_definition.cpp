@@ -55,15 +55,16 @@ return calculatedRect;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ///Plane
-Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param, bool *good_patch_marker_plane, int *count_flattened_cloud)
+Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param, bool *good_patch_marker_plane)
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_pla_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	transformed_pla_patch_cloud = transformPlanarPatchPoints(planar_patch_cloud, plane_param);
 	//visualizePointCloud(transformed_pla_patch_cloud, "flattened_plane");
-	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(transformed_pla_patch_cloud, "flattened_plane", (*count_flattened_cloud)++));
+	double alpha_shape_area = getAlphaShapeArea(transformed_pla_patch_cloud);
+	displayAlphaShape(transformed_pla_patch_cloud);
 	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 
-
+	
 
 	//pcl::io::savePCDFileASCII("C:\\Extract_indices\\build\\transformed_pla_patch_cloud.pcd", *transformed_pla_patch_cloud);
 	//visualizePointCloud(transformed_pla_patch_cloud, "transformed_pla_patch_cloud");
@@ -417,7 +418,7 @@ std::vector<int> IdentifyPlaneChains(pcl::PointCloud<pcl::PointXYZ>::Ptr plane_c
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///CYLINDER
-Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindrical_patch_cloud, std::vector<float> cyl_param, bool *good_patch_marker_cylinder, int *count_flattened_cloud)
+Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindrical_patch_cloud, std::vector<float> cyl_param, bool *good_patch_marker_cylinder)
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cyl_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	transformed_cyl_patch_cloud = transformCylindricalPatchPoints(cylindrical_patch_cloud, cyl_param);
@@ -427,8 +428,9 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, cyl_param);
 
-	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(flattened_cloud, "flattened_cylinder", (*count_flattened_cloud)++));
-	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	double alpha_shape_area = getAlphaShapeArea(flattened_cloud);
+	displayAlphaShape(flattened_cloud);
+	//std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud= transformConicalPatchPoints(conical_patch_cloud, cone_param);	
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud= FlattenCloud(canonical_output_cloud, cone_param);
 
@@ -466,10 +468,6 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 
 	//We join the candidate lines in chains of candidate lines, whenever they are adjacent and with similar orientations
 	std::vector<int> cyl_chain = IdentifyChains(transformed_cyl_patch_cloud, indexes, marker_chain);
-	if (DefineGoodBorderCylinder(flattened_cloud, cyl_chain) )
-	{
-
-	}
 
 	const int num_cyl_chains = cyl_chain.size();
 	const int num_marker_chains = marker_chain.size();
@@ -494,19 +492,6 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 
 	return cyl_data;
 }
-
-bool DefineGoodBorderCylinder(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<int> cyl_chain)
-{
-	ResequenceChain(cyl_chain);
-
-	return true;
-}
-
-void ResequenceChain(std::vector<int> cyl_chain)
-{
-
-}
-
 
 std::vector<point> CylinderCandiateLines(std::vector<point> convex_hull_points, std::vector<float> cyl_param)
 {
@@ -698,7 +683,7 @@ std::vector<float> computePlanePassingThroughPointWithGivenNormal(Eigen::Vector3
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //CONE
 
-Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_patch_cloud, std::vector<float> cone_param, bool *good_patch_marker_cone, int *count_flattened_cloud)
+Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_patch_cloud, std::vector<float> cone_param, bool *good_patch_marker_cone)
 {
 	//rotate the cone so that the axis aligns with the +Z axis, the origin point is the conic point
 	pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud = transformConicalPatchPoints(conical_patch_cloud, cone_param);
@@ -712,8 +697,9 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr conical_pat
 
 	//flatten 3d point cloud into XOZ-Plane
 	pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud = FlattenCloud(canonical_output_cloud, cone_param);
-	double alpha_shape_area = getAlphaShape(outputCloudOnTXT(flatten_cloud, "flattened_cone", (*count_flattened_cloud)++));
-	std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	double alpha_shape_area = getAlphaShapeArea(flatten_cloud);
+	displayAlphaShape(flatten_cloud);
+	//std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
 
 	Eigen::Vector2f flatten_point_i;
 	float alpha;
