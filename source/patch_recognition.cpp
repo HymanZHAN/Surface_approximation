@@ -592,7 +592,7 @@ int SinglePatchPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointC
 		
 	
 	int indices_size = inliers->indices.size();
-	if (indices_size > 0.95 * (*cloud)->size())
+	if (indices_size > (*cloud)->size())
 	{
 		if (flag == "plane")
 		{
