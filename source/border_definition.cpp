@@ -423,7 +423,7 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr cylindr
 	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cyl_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	transformed_cyl_patch_cloud = transformCylindricalPatchPoints(cylindrical_patch_cloud, cyl_param);
 
-	//visualizePointCloud(transformed_cyl_patch_cloud, "transformed_cyl_patch_cloud");
+	
 	//We flatten the cloud corresponding to the cylindrical patch 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, cyl_param);
