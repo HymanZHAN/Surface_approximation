@@ -196,11 +196,16 @@ int main(int argc, char** argv)
 
 
 
-		SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
+		if (!SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds))
+		{
+
+			//TwoPatchesPatition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
+		}
 
 
 
 		visualizePointCloud(cloud, "cloud", xy);
+
 		
 
 		
