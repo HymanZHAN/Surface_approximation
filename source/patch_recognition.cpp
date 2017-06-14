@@ -740,5 +740,6 @@ int TwoPatchesPatition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 			FindConeBorder(cloud, cloud_normals, results_single_patch_recognition.inliers_cone, results_single_patch_recognition.coefficients_cone, patch_count, patch_data, sourceClouds);
 		}
 	}
+
 	return 0;
 }
