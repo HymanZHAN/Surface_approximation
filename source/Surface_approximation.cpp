@@ -195,11 +195,15 @@ int main(int argc, char** argv)
 
 
 
+		//int model_with_maximum_points[4];   // [1/2/3][num_plane][num_cylinder][num_cone]
+		                                    // [1/2/3]: the model with maximum points,0 = plane,1=cylinder,2=cone
 
-		if (!SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds))
+		Models_recognition_results results_single_patch_recognition;
+		                          
+		if (!SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds, &results_single_patch_recognition))
 		{
 
-			//TwoPatchesPatition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
+			TwoPatchesPatition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds, results_single_patch_recognition);
 		}
 
 

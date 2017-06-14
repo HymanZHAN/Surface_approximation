@@ -30,12 +30,12 @@ int PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int threshold_in
 	}
 
 	// extract the inliers
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZ>);
+	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::ExtractIndices<pcl::PointXYZ> extract;
 	extract.setInputCloud(cloud);
 	extract.setIndices(*inliers);
 	extract.setNegative(false);
-	extract.filter(*cloud_plane);
+	extract.filter(*cloud_plane);*/
 	//std::cerr << "pointcloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
 	
@@ -46,7 +46,15 @@ int FindPlaneBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<
 	                pcl::PointIndices::Ptr inliers, pcl::ModelCoefficients::Ptr coefficients, 
 	                int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
-	
+
+	// print the coefficients of the found plane model:
+	std::cerr << "coef plane: " << std::endl;
+	std::cerr << "Ax + By + Cz + D = 0" << std::endl;
+	std::cerr << "A: " << coefficients->values[0] << std::endl;
+	std::cerr << "B: " << coefficients->values[1] << std::endl;
+	std::cerr << "C: " << coefficients->values[2] << std::endl;
+	std::cerr << "D: " << coefficients->values[3] << std::endl;
+
 
 	// extract the inliers
 	pcl::ExtractIndices<pcl::PointXYZ> extract;
@@ -58,7 +66,7 @@ int FindPlaneBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<
 	extract.filter(*cloud_plane);
 
 	// visualize the fitted points
-	visualizePointCloud(*cloud, cloud_plane, "found planar patch", xy);
+	visualizePointCloud(*cloud, cloud_plane, "planar patch", xy);
 
 
 	//Project the inliers on the RANSAC parametric model.
@@ -71,10 +79,21 @@ int FindPlaneBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<
 	(*cloud_plane).swap(*cloud_projected);
 
 
+	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_pla_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	transformed_pla_patch_cloud = transformPlanarPatchPoints(cloud_plane, coefficients->values);
 
-	bool good_patch_marker_plane = 1;
-	Eigen::MatrixXf temp_patch_data = MainPlanarPatch(cloud_plane, coefficients->values, &good_patch_marker_plane);
-	if (good_patch_marker_plane == 0)
+	//alpha shape
+	double alpha_shape_area = getAlphaShapeArea(transformed_pla_patch_cloud);
+	displayAlphaShape(transformed_pla_patch_cloud);
+	//std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+
+	//border
+	double convex_hull_area;
+	Eigen::MatrixXf temp_patch_data = MainPlanarPatch(transformed_pla_patch_cloud, coefficients->values, &convex_hull_area);
+	//std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
+
+
+	if (alpha_shape_area / convex_hull_area < PLANE_AREA_PERCENTAGE)
 	{
 		std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
 		return -1;
@@ -84,7 +103,6 @@ int FindPlaneBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<
 	*sourceCloud = *cloud_plane;
 	(*sourceClouds)[*patch_count] = sourceCloud;
 	(*patch_count)++;
-
 
 
 	// update the cloud of points still to fit in a patch
@@ -102,13 +120,7 @@ int FindPlaneBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<
 	(*cloud_normals).swap(remaining_cloud_normals);
 
 
-	// print the coefficients of the found plane model:
-	std::cerr << std::endl << "coef plane: " << std::endl;
-	std::cerr << "Ax + By + Cz + D = 0" << std::endl;
-	std::cerr << "A: " << coefficients->values[0] << std::endl;
-	std::cerr << "B: " << coefficients->values[1] << std::endl;
-	std::cerr << "C: " << coefficients->values[2] << std::endl;
-	std::cerr << "D: " << coefficients->values[3] << std::endl;
+	
 
 	std::cerr << std::endl << "------ remaining points: " << (*cloud)->size() << " data points." << std::endl << std::endl;
 
@@ -147,13 +159,13 @@ int CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointClo
 		return 0;
 	}
 
-	// extract the inliers
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cylinder(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::ExtractIndices<pcl::PointXYZ> extract;
-	extract.setInputCloud(cloud);
-	extract.setIndices(*inliers);
-	extract.setNegative(false);
-	extract.filter(*cloud_cylinder);
+	//// extract the inliers
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cylinder(new pcl::PointCloud<pcl::PointXYZ>);
+	//pcl::ExtractIndices<pcl::PointXYZ> extract;
+	//extract.setInputCloud(cloud);
+	//extract.setIndices(*inliers);
+	//extract.setNegative(false);
+	//extract.filter(*cloud_cylinder);
 
 	
 	return num_inliers;
@@ -164,6 +176,16 @@ int FindCylinderBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 	                   pcl::PointIndices::Ptr inliers, pcl::ModelCoefficients::Ptr coefficients,
 	                   int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
+	// print the coefficients of the found cylinder model:
+	std::cerr << std::endl;
+	std::cerr << "coef cylinder: " << std::endl;
+	std::cerr << "appex:        " << coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << std::endl;
+	std::cerr << "central axis: " << coefficients->values[3] << ", " << coefficients->values[4] << ", " << coefficients->values[5] << std::endl;
+	std::cerr << "radius:       " << coefficients->values[6] << std::endl << std::endl;
+	std::cerr << std::endl;
+
+
+
 	// extract the inliers
 	pcl::ExtractIndices<pcl::PointXYZ> extract;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cylinder(new pcl::PointCloud<pcl::PointXYZ>);
@@ -173,7 +195,7 @@ int FindCylinderBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 	extract.setNegative(false);
 	extract.filter(*cloud_cylinder);
 
-	visualizePointCloud(*cloud, cloud_cylinder, "found cylindrical patch", xy);
+	visualizePointCloud(*cloud, cloud_cylinder, "cylindrical patch", xy);
 
 	//Project the inliers on the RANSAC parametric model.
 	pcl::ProjectInliers<pcl::PointXYZ> proj;
@@ -184,19 +206,29 @@ int FindCylinderBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 	proj.filter(*cloud_projected);
 	(*cloud_cylinder).swap(*cloud_projected);
 
-	//visualizePointCloud(*cloud, cloud_cylinder, "found cylindrical patch", xy);
 
+	//We flatten the cloud corresponding to the cylindrical patch 
+	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cyl_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	transformed_cyl_patch_cloud = transformCylindricalPatchPoints(cloud_cylinder, coefficients->values);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, coefficients->values);
 	
+	//alpha shape
+	double alpha_shape_area = getAlphaShapeArea(flattened_cloud);
+	displayAlphaShape(flattened_cloud);
+	//std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
 
-	// determine the possible shared border lines of the patch
-	bool good_patch_marker_cylinder = 1;
-	Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(cloud_cylinder, coefficients->values, &good_patch_marker_cylinder);
+	//convex hull
+	double convex_hull_area;
+	Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(transformed_cyl_patch_cloud, flattened_cloud, coefficients->values, &convex_hull_area);
+	//std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
 
-	if (good_patch_marker_cylinder == 0)
+	if (alpha_shape_area / convex_hull_area < CYL_AREA_PERCENTAGE)
 	{
 		std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
 		return -1;
 	}
+
 	(*patch_data)[*patch_count] = temp_patch_data;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 	*sourceCloud = *cloud_cylinder;
@@ -218,16 +250,7 @@ int FindCylinderBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 	extract_normals.filter(*remaining_cloud_normals);
 	(*cloud_normals).swap(remaining_cloud_normals);
 
-
-
-	// print the coefficients of the found cylinder model:
-	std::cerr << std::endl;
-	std::cerr << "coef cylinder: " << std::endl;
-	std::cerr << "appex:        " << coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << std::endl;
-	std::cerr << "central axis: " << coefficients->values[3] << ", " << coefficients->values[4] << ", " << coefficients->values[5] << std::endl;
-	std::cerr << "radius:       " << coefficients->values[6] << std::endl << std::endl;
-	std::cerr << std::endl;
-
+	
 	std::cerr << "------ remaining points: " << (*cloud)->size() << " data points." << std::endl << std::endl;
 	return cloud_cylinder->points.size();
 }
@@ -334,13 +357,13 @@ int ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<p
 		return 0;
 	}
 
-	// Extract the inliers
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cone(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::ExtractIndices<pcl::PointXYZ> extract;
-	extract.setInputCloud(cloud);
-	extract.setIndices(*inliers);
-	extract.setNegative(false);
-	extract.filter(*cloud_cone);
+	//// Extract the inliers
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cone(new pcl::PointCloud<pcl::PointXYZ>);
+	//pcl::ExtractIndices<pcl::PointXYZ> extract;
+	//extract.setInputCloud(cloud);
+	//extract.setIndices(*inliers);
+	//extract.setNegative(false);
+	//extract.filter(*cloud_cone);
 
 	
 	return num_inliers;
@@ -350,6 +373,15 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 	               pcl::PointIndices::Ptr inliers, pcl::ModelCoefficients::Ptr coefficients,
 	               int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
+	// Print the coefficients of the found cylinder model:	
+	std::cerr << std::endl;
+	std::cerr << "coef cone: " << std::endl;
+	std::cerr << "appex:        " << coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << std::endl;
+	std::cerr << "central axis: " << coefficients->values[3] << ", " << coefficients->values[4] << ", " << coefficients->values[5] << std::endl;
+	std::cerr << "semi-angle:   " << coefficients->values[6] << std::endl;
+	std::cerr << std::endl;
+
+
 	// extract the inliers
 	pcl::ExtractIndices<pcl::PointXYZ> extract;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cone(new pcl::PointCloud<pcl::PointXYZ>);
@@ -373,14 +405,29 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 	(*cloud_cone).swap(*cloud_projected);
 
 
-	// Determine the possible shared border lines of the patch
-	bool good_patch_marker_cone = 1;
-	Eigen::MatrixXf temp_patch_data = MainConicalPatch(cloud_cone, coefficients->values, &good_patch_marker_cone);
-	if (good_patch_marker_cone == 0)
+
+	//rotate the cone so that the axis aligns with the +Z axis, the origin point is the conic point
+	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cone_patch_cloud = transformConicalPatchPoints(cloud_cone, coefficients->values);
+	//flatten 3d point cloud into XOZ-Plane
+	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenCloud(transformed_cone_patch_cloud, coefficients->values);
+
+
+	//alpha shape
+	double alpha_shape_area = getAlphaShapeArea(flattened_cloud);
+	displayAlphaShape(flattened_cloud);
+	//std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+
+	//convex hull
+	double convex_hull_area;
+	Eigen::MatrixXf temp_patch_data = MainConicalPatch(transformed_cone_patch_cloud, flattened_cloud, coefficients->values, &convex_hull_area);
+	//std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
+
+	if (alpha_shape_area / convex_hull_area < CONE_AREA_PERCENTAGE)
 	{
 		std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
 		return -1;
 	}
+
 	(*patch_data)[*patch_count] = temp_patch_data;
 	//patch_data[patch_count] = MainConicalPatch(cloud_p, coefficients->values);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -403,15 +450,6 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 	extract_normals.filter(*remaining_cloud_normals);
 	(*cloud_normals).swap(remaining_cloud_normals);
 
-
-
-	// Print the coefficients of the found cylinder model:	
-	std::cerr << std::endl;
-	std::cerr << "coef cone: " << std::endl;
-	std::cerr << "appex:        " << coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << std::endl;
-	std::cerr << "central axis: " << coefficients->values[3] << ", " << coefficients->values[4] << ", " << coefficients->values[5] << std::endl;
-	std::cerr << "semi-angle:   " << coefficients->values[6] << std::endl;
-	std::cerr << std::endl;
 
 	std::cerr << "------ Remaining points: " << (*cloud)->size() << " data points." << std::endl << std::endl;
 
@@ -570,98 +608,137 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 
 
 int SinglePatchPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers,
-	                      int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
+	                     int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds, Models_recognition_results *results_single_patch_recognition)
 {
 	std::cerr << std::endl << "Single patch recognition:" << std::endl;
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
-	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+	pcl::ModelCoefficients::Ptr coefficients_plane(new pcl::ModelCoefficients()), coefficients_cyl(new pcl::ModelCoefficients()), coefficients_cone(new pcl::ModelCoefficients());
+	pcl::PointIndices::Ptr inliers_plane(new pcl::PointIndices()), inliers_cyl(new pcl::PointIndices()), inliers_cone(new pcl::PointIndices());
 	int cloud_size = (*cloud)->points.size();
+	int num_plane, num_cyl, num_cone, num_max;
 
-	if (PlaneRecognition(*cloud, threshold_inliers, &inliers, &coefficients) != cloud_size)
+
+	(*results_single_patch_recognition).model_with_maximum_points = "plane";
+	num_plane = PlaneRecognition(*cloud, threshold_inliers, &inliers_plane, &coefficients_plane);
+	(*results_single_patch_recognition).coefficients_plane = coefficients_plane;
+	(*results_single_patch_recognition).inliers_plane = inliers_plane;
+	num_max = num_plane;
+	if (num_max != cloud_size)
 	{
-		if (CylinderRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers, &coefficients) != cloud_size)
+		num_cyl = CylinderRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers_cyl, &coefficients_cyl);
+		(*results_single_patch_recognition).coefficients_cylinder = coefficients_cyl;
+		(*results_single_patch_recognition).inliers_cylinder = inliers_cyl;
+		if (num_max < num_cyl)
 		{
-			if (ConeRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers, &coefficients) != cloud_size)
+			(*results_single_patch_recognition).model_with_maximum_points = "cylinder";
+			num_max = num_cyl;
+		}
+
+		if (num_max != cloud_size)
+		{
+			num_cone = ConeRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers_cone, &coefficients_cone);
+			(*results_single_patch_recognition).coefficients_cone = coefficients_cone;
+			(*results_single_patch_recognition).inliers_cone = inliers_cone;
+			if (num_max < num_cone)
 			{
+				(*results_single_patch_recognition).model_with_maximum_points = "cone";
+				num_max = num_cone;
+			}
+
+			if (num_max != cloud_size)
+			{
+				std::cerr << "The whole part can not be recognized as one single patch." << std::endl;
 				return 0;
 			}
 			else
 			{
 				std::cerr << "The whole part can be recognized as a cone." << std::endl;
-				return FindConeBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+				return FindConeBorder(cloud, cloud_normals, (*results_single_patch_recognition).inliers_cone, (*results_single_patch_recognition).coefficients_cone, patch_count, patch_data, sourceClouds);
 			}
 		}
 		else
 		{
 			std::cerr << "The whole part can be recognized as a cylinder." << std::endl;
-			return FindCylinderBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+			return FindCylinderBorder(cloud, cloud_normals, (*results_single_patch_recognition).inliers_cylinder, (*results_single_patch_recognition).coefficients_cylinder, patch_count, patch_data, sourceClouds);
 		}
 	}
 	else
 	{
 		std::cerr << "The whole part can be recognized as a plane." << std::endl;
-		return FindPlaneBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+		return FindPlaneBorder(cloud, cloud_normals, (*results_single_patch_recognition).inliers_plane, (*results_single_patch_recognition).coefficients_plane, patch_count, patch_data, sourceClouds);
 	}
+
+	//model_with_maximum_points[0] = 1; //plane
+	//model_with_maximum_points[1] = PlaneRecognition(*cloud, threshold_inliers, &inliers, &coefficients);
+
+	//if (model_with_maximum_points[model_with_maximum_points[0]] != cloud_size)
+	//{	
+	//	model_with_maximum_points[2] = CylinderRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers, &coefficients);
+	//	if (model_with_maximum_points[model_with_maximum_points[0]] < model_with_maximum_points[2])
+	//	{
+	//		model_with_maximum_points[0] = 2; //cylinder
+	//	}	
+
+	//	if (model_with_maximum_points[model_with_maximum_points[0]] != cloud_size)
+	//	{
+	//		model_with_maximum_points[3] = ConeRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers, &coefficients);
+	//		if (model_with_maximum_points[model_with_maximum_points[0]] < model_with_maximum_points[3])
+	//		{
+	//			model_with_maximum_points[0] = 3;  //cone
+	//		}
+	//
+	//		if (model_with_maximum_points[model_with_maximum_points[0]] != cloud_size)
+	//		{
+	//			std::cerr << "The whole part can not be recognized as one single patch." << std::endl;
+	//			return 0;
+	//		}
+	//		else
+	//		{
+	//			std::cerr << "The whole part can be recognized as a cone." << std::endl;
+	//			return FindConeBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		std::cerr << "The whole part can be recognized as a cylinder." << std::endl;
+	//		return FindCylinderBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+	//	}
+	//}
+	//else
+	//{
+	//	std::cerr << "The whole part can be recognized as a plane." << std::endl;
+	//	return FindPlaneBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+	//}
 
 }
 
 
-int TwoPatchesPatition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers,
-	                   int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
+int TwoPatchesPatition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers, int *patch_count, 
+	                   Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds, Models_recognition_results results_single_patch_recognition)
 {
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
-	pcl::ModelCoefficients::Ptr coefficients_plane(new pcl::ModelCoefficients()), coefficients_cylinder(new pcl::ModelCoefficients()), coefficients_cone(new pcl::ModelCoefficients());
-	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-	pcl::PointIndices::Ptr inliers_plane(new pcl::PointIndices()), inliers_cylinder(new pcl::PointIndices()), inliers_cone(new pcl::PointIndices());
-	std::string flag;
+	std::cerr << std::endl << "Two patches recognition:" << std::endl;
+	//pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
+	//pcl::ModelCoefficients::Ptr coefficients_plane(new pcl::ModelCoefficients()), coefficients_cylinder(new pcl::ModelCoefficients()), coefficients_cone(new pcl::ModelCoefficients());
+	//pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+	//pcl::PointIndices::Ptr inliers_plane(new pcl::PointIndices()), inliers_cylinder(new pcl::PointIndices()), inliers_cone(new pcl::PointIndices());
+	/*std::string flag;
 	PlaneRecognition(*cloud, threshold_inliers, &inliers_plane, &coefficients_plane);
 	CylinderRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers_cylinder, &coefficients_cylinder);
-	ConeRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers_cone, &coefficients_cone);
+	ConeRecognition(*cloud, *cloud_normals, threshold_inliers, &inliers_cone, &coefficients_cone);*/
 
-	if (inliers_plane->indices.size() < inliers_cylinder->indices.size())
+	if (results_single_patch_recognition.model_with_maximum_points == "plane")
 	{
-		flag = "cylinder";
-		inliers = inliers_cylinder;
-		coefficients = coefficients_cylinder;
+		FindPlaneBorder(cloud, cloud_normals, results_single_patch_recognition.inliers_plane, results_single_patch_recognition.coefficients_plane, patch_count, patch_data, sourceClouds);
 	}
 	else
 	{
-		flag = "plane";
-		inliers = inliers_plane;
-		coefficients = coefficients_plane;
-	}
-	if (inliers->indices.size() < inliers_cone->indices.size())
-	{
-		flag = "cone";
-		inliers = inliers_cone;
-		coefficients = coefficients_cone;
-	}
-
-
-	int indices_size = inliers->indices.size();
-	if (indices_size == (*cloud)->size())
-	{
-		if (flag == "plane")
+		if (results_single_patch_recognition.model_with_maximum_points == "cylinder")
 		{
-			FindPlaneBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
+			FindCylinderBorder(cloud, cloud_normals, results_single_patch_recognition.inliers_cylinder, results_single_patch_recognition.coefficients_cylinder, patch_count, patch_data, sourceClouds);
 		}
 		else
 		{
-			if (flag == "cylinder")
-			{
-				FindCylinderBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
-			}
-			else
-			{
-				FindCylinderBorder(cloud, cloud_normals, inliers, coefficients, patch_count, patch_data, sourceClouds);
-			}
+			FindConeBorder(cloud, cloud_normals, results_single_patch_recognition.inliers_cone, results_single_patch_recognition.coefficients_cone, patch_count, patch_data, sourceClouds);
 		}
 	}
-	else
-	{
-		return 0;
-	}
-
-
-	return indices_size;
+	return 0;
 }
