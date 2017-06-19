@@ -38,7 +38,7 @@ using namespace std;
 
 #include "read_parameters.h"
 #include "cloud_visualizer.h"
-#include "patch_recognition.h"
+#include "single_patch_recognition.h"
 //#include "check_patch_validity.h"
 #include "geometry_tools.h"
 #include "border_definition.h"

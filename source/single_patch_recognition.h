@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef PATCH_RECOGNITION_H
-#define PATCH_RECOGNITION_H
+#ifndef SINGLE_PATCH_RECOGNITION_H
+#define SINGLE_PATCH_RECOGNITION_H
 
 #include "read_parameters.h"
 #include "border_definition.h"

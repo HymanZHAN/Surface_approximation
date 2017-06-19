@@ -1,4 +1,4 @@
-#include "patch_recognition.h"
+#include "single_patch_recognition.h"
 
 
 int PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int threshold_inliers,
@@ -85,12 +85,13 @@ int FindPlaneBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<
 	//alpha shape
 	double alpha_shape_area = getAlphaShapeArea(transformed_pla_patch_cloud);
 	displayAlphaShape(transformed_pla_patch_cloud);
-	//std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+
 
 	//border
 	double convex_hull_area;
 	Eigen::MatrixXf temp_patch_data = MainPlanarPatch(transformed_pla_patch_cloud, coefficients->values, &convex_hull_area);
-	//std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
+	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
 
 
 	if (alpha_shape_area / convex_hull_area < PLANE_AREA_PERCENTAGE)
@@ -216,12 +217,13 @@ int FindCylinderBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 	//alpha shape
 	double alpha_shape_area = getAlphaShapeArea(flattened_cloud);
 	displayAlphaShape(flattened_cloud);
-	//std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+
 
 	//convex hull
 	double convex_hull_area;
 	Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(transformed_cyl_patch_cloud, flattened_cloud, coefficients->values, &convex_hull_area);
-	//std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
+	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
 
 	if (alpha_shape_area / convex_hull_area < CYL_AREA_PERCENTAGE)
 	{
@@ -415,12 +417,12 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 	//alpha shape
 	double alpha_shape_area = getAlphaShapeArea(flattened_cloud);
 	displayAlphaShape(flattened_cloud);
-	//std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
 
 	//convex hull
 	double convex_hull_area;
 	Eigen::MatrixXf temp_patch_data = MainConicalPatch(transformed_cone_patch_cloud, flattened_cloud, coefficients->values, &convex_hull_area);
-	//std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
+	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
 
 	if (alpha_shape_area / convex_hull_area < CONE_AREA_PERCENTAGE)
 	{
@@ -740,6 +742,7 @@ int TwoPatchesPatition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 			FindConeBorder(cloud, cloud_normals, results_single_patch_recognition.inliers_cone, results_single_patch_recognition.coefficients_cone, patch_count, patch_data, sourceClouds);
 		}
 	}
+
 
 	return 0;
 }
