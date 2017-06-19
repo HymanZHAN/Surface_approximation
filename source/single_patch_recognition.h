@@ -7,6 +7,7 @@
 #include "border_definition.h"
 #include "segmentation.h"
 #include "io.h"
+
 #include <iostream>
 #include <time.h>
 #include <direct.h>
@@ -67,28 +68,29 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 	               pcl::PointIndices::Ptr inliers, pcl::ModelCoefficients::Ptr coefficients,
 	               int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds);
 
-struct Models_recognition_results
-{
-	std::string model_with_maximum_points; //0=plane, 1=cylinder, 2=cone
-	pcl::PointIndices::Ptr inliers_plane;
-	pcl::ModelCoefficients::Ptr coefficients_plane;
-	pcl::PointIndices::Ptr inliers_cylinder;
-	pcl::ModelCoefficients::Ptr coefficients_cylinder;
-	pcl::PointIndices::Ptr inliers_cone;
-	pcl::ModelCoefficients::Ptr coefficients_cone;
-
-};
+//struct Models_recognition_results
+//{
+//	std::string model_with_maximum_points; //0=plane, 1=cylinder, 2=cone
+//	pcl::PointIndices::Ptr inliers_plane;
+//	pcl::ModelCoefficients::Ptr coefficients_plane;
+//	pcl::PointIndices::Ptr inliers_cylinder;
+//	pcl::ModelCoefficients::Ptr coefficients_cylinder;
+//	pcl::PointIndices::Ptr inliers_cone;
+//	pcl::ModelCoefficients::Ptr coefficients_cone;
+//
+//};
 
 //void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
 //	                        int threshold_inliers, int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds);
 //
 
 
-int SinglePatchPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers,
-	                     int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds, Models_recognition_results *results_after_single_patch_recognition);
+//int SinglePatchPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers,
+//	                     int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds, Models_recognition_results *results_after_single_patch_recognition);
 
-int TwoPatchesPatition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers,
-	                   int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds, Models_recognition_results results_single_patch_recognition);
+int SinglePatchPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers,
+                        int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds);
+
 
 
 
