@@ -2,6 +2,8 @@
 #include "main_window.h"
 #include <CGAL/Qt/resources.h>
 
+// This is a test statement.
+
 struct SPoint
 {
 	bool multiple;
