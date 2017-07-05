@@ -1,0 +1,79 @@
+﻿  Checking Build System
+  CMake is re-running because C:/Development/Surface_approximation/build/CMakeFiles/generate.stamp is out-of-date.
+    the file 'C:/Development/Surface_approximation/source/CMakeLists.txt'
+    is newer than 'C:/Development/Surface_approximation/build/CMakeFiles/generate.stamp.depend'
+    result='-1'
+  -- Boost version: 1.61.0
+  -- Found the following Boost libraries:
+  --   system
+  --   filesystem
+  --   thread
+  --   date_time
+  --   iostreams
+  --   serialization
+  --   chrono
+  --   atomic
+  --   regex
+  -- Could NOT find openni (missing:  OPENNI_LIBRARY OPENNI_INCLUDE_DIRS) 
+  ** WARNING ** io features related to openni will be disabled
+  -- Could NOT find ensenso (missing:  ENSENSO_LIBRARY ENSENSO_INCLUDE_DIR) 
+  ** WARNING ** io features related to ensenso will be disabled
+  -- Could NOT find DAVIDSDK (missing:  DAVIDSDK_LIBRARY DAVIDSDK_INCLUDE_DIR) 
+  ** WARNING ** io features related to davidSDK will be disabled
+  -- Could NOT find DSSDK (missing:  _DSSDK_LIBRARIES) 
+  ** WARNING ** io features related to dssdk will be disabled
+  -- Could NOT find RSSDK (missing:  _RSSDK_LIBRARIES) 
+  ** WARNING ** io features related to rssdk will be disabled
+  ** WARNING ** io features related to pcap will be disabled
+  ** WARNING ** io features related to png will be disabled
+  -- Could NOT find openni (missing:  OPENNI_LIBRARY OPENNI_INCLUDE_DIRS) 
+  ** WARNING ** visualization features related to openni will be disabled
+  -- Could NOT find ensenso (missing:  ENSENSO_LIBRARY ENSENSO_INCLUDE_DIR) 
+  ** WARNING ** visualization features related to ensenso will be disabled
+  -- Could NOT find DAVIDSDK (missing:  DAVIDSDK_LIBRARY DAVIDSDK_INCLUDE_DIR) 
+  ** WARNING ** visualization features related to davidSDK will be disabled
+  -- Could NOT find DSSDK (missing:  _DSSDK_LIBRARIES) 
+  ** WARNING ** visualization features related to dssdk will be disabled
+  -- Could NOT find RSSDK (missing:  _RSSDK_LIBRARIES) 
+  ** WARNING ** visualization features related to rssdk will be disabled
+  -- looking for PCL_COMMON
+  -- looking for PCL_OCTREE
+  -- looking for PCL_IO
+  -- looking for PCL_KDTREE
+  -- looking for PCL_SEARCH
+  -- looking for PCL_SAMPLE_CONSENSUS
+  -- looking for PCL_FILTERS
+  -- looking for PCL_2D
+  -- looking for PCL_GEOMETRY
+  -- looking for PCL_FEATURES
+  -- looking for PCL_ML
+  -- looking for PCL_SEGMENTATION
+  -- looking for PCL_VISUALIZATION
+  -- looking for PCL_SURFACE
+  -- looking for PCL_REGISTRATION
+  -- looking for PCL_KEYPOINTS
+  -- looking for PCL_TRACKING
+  -- looking for PCL_RECOGNITION
+  -- looking for PCL_STEREO
+  -- looking for PCL_OUTOFCORE
+  -- looking for PCL_PEOPLE
+  -- Using OpenCV vc14 for VisualStudio 2017.
+  -- OpenCV ARCH: x64
+  -- OpenCV RUNTIME: vc14
+  -- OpenCV STATIC: OFF
+  -- Found OpenCV 2.4.13.2 in C:/Development/Packages/opencv/build/x64/vc14/lib
+  -- You might need to add C:\Development\Packages\opencv\build\x64\vc14\bin to your PATH to be able to run your applications.
+  -- Visual Leak Detector (VLD) is not found.
+  -- Build type: Release
+  -- USING CXXFLAGS = '/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /fp:strict /fp:except- /wd4503 /bigobj  /MD /O2 /Ob2 /DNDEBUG'
+  -- USING EXEFLAGS = '/machine:x64  /INCREMENTAL:NO'
+  -- Targetting Visual Studio 15 2017 Win64
+  -- Target build enviroment supports auto-linking
+  -- Using VC14 compiler.
+  -- Generator uses intermediate configuration directory: $(Configuration)
+  -- Requested component: Qt5
+  -- Requested component: MPFR
+  -- Requested component: GMP
+  -- Configuring done
+  -- Generating done
+  -- Build files have been written to: C:/Development/Surface_approximation/build
