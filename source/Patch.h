@@ -9,6 +9,9 @@
 #include "io.h"
 #include "segmentation.h"
 
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+enum Shape { plane, cylinder, cone };
+
 class Patch
 {
 private:
@@ -18,7 +21,7 @@ private:
 	pcl::PointIndices::Ptr inliers;
 	pcl::ModelCoefficients::Ptr coefficients;
 	std::vector<int> serial_number_boundary;
-	enum Shape { plane, cylinder, cone };
+	Shape model;
 	
 public:
 	int FixHoleAndFragmentation();
@@ -26,26 +29,4 @@ public:
 
 };
 
-int Patch::FixHoleAndFragmentation()
-{
-	Polygon_list polygon_list = getAlphaShape(cloud_inlier);
-	if (polygon_list.size() == 1)
-	{
-		return 0;
-	}
-	std::sort(polygon_list.begin(), polygon_list.end(),
-		[](const Polygon_2& lhs, const Polygon_2& rhs) { return lhs.area() > rhs.area(); });
-	Polygon_2 polygon_max_area = polygon_list.back();
-	polygon_list.pop_back();
-	Polygon_2 polygon_max_area_2 = polygon_list.back();
-	polygon_list.pop_back();
-
-
-}
-
-
-void Patch::CheckBoundary()
-{
-
-}
-
+Polygon_2 CheckHoleInside(Polygon_2 polygon_max_area, Polygon_list *polygon_list);
