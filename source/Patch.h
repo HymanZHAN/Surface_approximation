@@ -10,7 +10,7 @@
 #include "segmentation.h"
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-enum Shape { plane, cylinder, cone };
+enum class Shape { plane, cylinder, cone };
 
 class Patch
 {

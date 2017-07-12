@@ -162,6 +162,16 @@ int main(int argc, char** argv)
 		ReadSTLFile(load_file.c_str(), &original_cloud, &original_cloud_normals);
 		pcl::copyPointCloud(*original_cloud, *cloud);
 		pcl::copyPointCloud(*original_cloud_normals, *cloud_normals);
+
+		map<int, pcl::PointXYZ> cloud_map;
+
+		int point_sn = 0;
+		for (auto it = cloud->begin(); it != cloud->end(); ++it)
+		{
+			cloud_map.insert(std::pair<int, pcl::PointXYZ>(std::distance(cloud->begin(), it), *it));
+		};
+
+		
 		//visualizePointCloud(original_cloud, "original_cloud",xy);
 		//visualizePointCloud(original_cloud_normals, "original_cloud_normals",xy);
 		//visualizePointCloud(cloud, "cloud",xy);
