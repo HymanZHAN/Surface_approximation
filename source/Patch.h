@@ -24,7 +24,8 @@ private:
 	Shape model;
 	
 public:
-	int FixHoleAndFragmentation();
+	Patch::Patch();
+	Patch FixHoleAndFragmentation();
 	void CheckBoundary();
 
 };

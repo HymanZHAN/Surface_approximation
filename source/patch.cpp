@@ -1,7 +1,11 @@
 #include "patch.h"
 #include "alpha_shape_polygons.h"
 
-int Patch::FixHoleAndFragmentation()
+Patch::Patch()
+{
+}
+
+Patch Patch::FixHoleAndFragmentation()
 {
 	if (model == plane)
 	{

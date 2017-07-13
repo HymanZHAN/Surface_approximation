@@ -171,6 +171,11 @@ int main(int argc, char** argv)
 			cloud_map.insert(std::pair<int, pcl::PointXYZ>(std::distance(cloud->begin(), it), *it));
 		};
 
+		/*for (auto item : cloud_map)
+		{
+			cout << item.first << " " << item.second << endl;
+		}*/
+
 		
 		//visualizePointCloud(original_cloud, "original_cloud",xy);
 		//visualizePointCloud(original_cloud_normals, "original_cloud_normals",xy);
