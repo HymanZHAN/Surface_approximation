@@ -1,13 +1,29 @@
 #include "patch.h"
-#include "alpha_shape_polygons.h"
 
-Patch::Patch()
+Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, Shape model):cloud_input(input_cloud), 
 {
+	// Use input_cloud to run RANSAC
+	switch (model)
+	{
+	case Shape::plane:
+		
+		pcl::SACSegmentation<pcl::PointXYZ> seg_pln;
+		setSegmentationParametersForPlane(seg_pln);
+		seg_pln.setInputCloud(input_cloud);
+		seg_pln.segment(*Patch::inliers, *Patch::coefficients);
+
+
+		
+	}
+
+	// Obtain the initial inliers and corresponding properties
+
+
 }
 
 Patch Patch::FixHoleAndFragmentation()
 {
-	if (model == plane)
+	if (model == Shape::plane)
 	{
 
 	}

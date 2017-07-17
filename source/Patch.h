@@ -24,7 +24,7 @@ private:
 	Shape model;
 	
 public:
-	Patch::Patch();
+	Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, Shape patch_shape);
 	Patch FixHoleAndFragmentation();
 	void CheckBoundary();
 

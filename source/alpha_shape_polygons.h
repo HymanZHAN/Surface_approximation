@@ -64,12 +64,9 @@ typedef CGAL::Alpha_shape_2<Triangulation_2>  Alpha_shape_2;
 typedef Alpha_shape_2::Alpha_iterator Alpha_iterator;
 
 //A bidirectional and non-mutable iterator that allow to traverse the edges 
-//which belongs to the £\-shape for the current £\.
+//which belongs to the alpha-shape for the current alpha.
 typedef Alpha_shape_2::Alpha_shape_edges_iterator Alpha_shape_edges_iterator;
 typedef Alpha_shape_2::Alpha_shape_vertices_iterator Alpha_shape_vertices_iterator;
-
-
-
 
 typedef CGAL::Polygon_2<K> Polygon_2;
 typedef Polygon_2::Vertex_iterator VertexIterator;
@@ -80,6 +77,8 @@ typedef std::list<Polygon_2> Polygon_list;
 
 
 //member function declaration
+Polygon_list getAlphaShape(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+
 double getAlphaShapeArea(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
 void displayAlphaShape(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
