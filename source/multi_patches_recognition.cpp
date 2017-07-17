@@ -1,4 +1,4 @@
-#include "two_patches_recognition.h"
+#include "multi_patches_recognition.h"
 #include "single_patch_recognition.h"
 
 //pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractandProjectPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
