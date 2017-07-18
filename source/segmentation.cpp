@@ -37,3 +37,18 @@ void setSegmentationParametersForCone(pcl::SACSegmentationFromNormals<pcl::Point
 	seg_cone.setDistanceThreshold (CONE_TOL);
 	seg_cone.setRadiusLimits (CONE_MIN_RADIUS_LIMIT, CONE_MAX_RADIUS_LIMIT);
 }
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr extractCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, pcl::PointIndices::Ptr inlier_indices, bool negative = false)
+{
+	// Extract cloud according to inliers' indices
+	// Parameter: (input_cloud, inliers' indices); Output: Inliers as a PointCloud
+	pcl::ExtractIndices<pcl::PointXYZ> extract;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr output_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+	extract.setInputCloud(input_cloud);
+	extract.setIndices(inlier_indices);
+	extract.setNegative(negative);
+	extract.filter(*output_cloud);
+
+	return output_cloud;
+}

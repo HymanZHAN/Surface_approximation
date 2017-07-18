@@ -18,13 +18,15 @@ private:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_input;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_inlier;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remainder;
-	pcl::PointIndices::Ptr inliers;
+	//pcl::PointIndices::Ptr inliers_original;
+	pcl::PointIndices::Ptr inliers_current;
+	std::map<int, int> indices_map;
 	pcl::ModelCoefficients::Ptr coefficients;
 	std::vector<int> serial_number_boundary;
 	Shape model;
 	
 public:
-	Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, Shape patch_shape);
+	Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, pcl::PointIndices::Ptr inliers_parent, Shape model);
 	Patch FixHoleAndFragmentation();
 	void CheckBoundary();
 

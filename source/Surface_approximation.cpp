@@ -164,11 +164,9 @@ int main(int argc, char** argv)
 		pcl::copyPointCloud(*original_cloud_normals, *cloud_normals);
 
 		map<int, pcl::PointXYZ> cloud_map;
-
-		int point_sn = 0;
 		for (auto it = cloud->begin(); it != cloud->end(); ++it)
 		{
-			cloud_map.insert(std::pair<int, pcl::PointXYZ>(std::distance(cloud->begin(), it), *it));
+			cloud_map.insert(pair<int, pcl::PointXYZ>(distance(cloud->begin(), it), *it));
 		};
 
 		/*for (auto item : cloud_map)

@@ -18,4 +18,6 @@ void setSegmentationParametersForCylinder(pcl::SACSegmentationFromNormals<pcl::P
 void setSegmentationParametersForCone(pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal>& seg_cone);
 
 //void setSegmentationConstraintForCylinder()
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr extractCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, pcl::PointIndices::Ptr inlier_indices, bool negative = false);
 #endif

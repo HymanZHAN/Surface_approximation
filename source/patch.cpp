@@ -1,22 +1,35 @@
 #include "patch.h"
 
-Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, Shape model):cloud_input(input_cloud), 
+Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud, pcl::PointIndices::Ptr inliers_parent, Shape model):cloud_input(input_cloud)
 {
-	// Use input_cloud to run RANSAC
+	// Use input_cloud to run RANSAC	
+	// Obtain the initial inliers and corresponding properties
+
+	pcl::SACSegmentation<pcl::PointXYZ> seg;
+
 	switch (model)
 	{
 	case Shape::plane:
-		
-		pcl::SACSegmentation<pcl::PointXYZ> seg_pln;
-		setSegmentationParametersForPlane(seg_pln);
-		seg_pln.setInputCloud(input_cloud);
-		seg_pln.segment(*Patch::inliers, *Patch::coefficients);
+		setSegmentationParametersForPlane(seg);
 
+	case Shape::cylinder:
+		setSegmentationParametersForPlane(seg);
 
-		
+	case Shape::cone:
+		setSegmentationParametersForPlane(seg);
 	}
+	
+	seg.setInputCloud(input_cloud);
+	seg.segment(*Patch::inliers_current, *Patch::coefficients);// both "inliers" and "coefficients" are output
+	cloud_inlier = extractCloud(input_cloud, inliers_current);
+	cloud_remainder = extractCloud(input_cloud, inliers_current, true);
 
-	// Obtain the initial inliers and corresponding properties
+	inliers_current->indices.
+
+	for (auto it = cloud_inlier->begin(); it != cloud_inlier->end(); ++it)
+	{
+		indices_map.insert(std::pair<int, int>(distance(cloud_inlier->begin(), it), ));
+	};
 
 
 }
