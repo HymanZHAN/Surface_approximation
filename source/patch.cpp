@@ -1,5 +1,173 @@
 #include "patch.h"
 
+Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model):cloud_input(cloud), cloud_input_normals(normal), model(model)
+{
+	// Use input_cloud to run RANSAC	
+	// Obtain the initial inliers and corresponding properties
+
+	switch (model)
+	{
+	       case Shape::plane: 
+		   {
+			   pcl::SACSegmentation<pcl::PointXYZ> seg;
+			   setSegmentationParametersForPlane(seg);
+			   seg.setInputCloud(cloud_input);
+			   seg.segment(*inliers, *coefficients);
+		   }
+		   break;
+
+           case Shape::cylinder:
+		   {
+			   pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_cyl;
+			   setSegmentationParametersForCylinder(seg_cyl);
+			   seg_cyl.setInputCloud(cloud_input);
+			   seg_cyl.setInputNormals(cloud_input_normals);
+			   seg_cyl.segment(*inliers, *coefficients);
+		   }
+		   break;
+		
+	       case Shape::cone:
+		   {
+			   pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_cone;
+			   setSegmentationParametersForCone(seg_cone);
+			   seg_cone.setInputCloud(cloud_input);
+			   seg_cone.setInputNormals(cloud_input_normals);
+			   seg_cone.segment(*inliers, *coefficients);
+		   }
+	}
+
+	cloud_inlier = ExtractCloud(cloud_input, inliers, false);
+	cloud_remainder = ExtractCloud(cloud_input, inliers, true);
+
+
+		/*for (auto it = cloud_inlier->begin(); it != cloud_inlier->end(); ++it)
+		{
+			indices_map.insert(std::pair<int, int>(distance(cloud_inlier->begin(), it), ));
+		};*/
+
+
+}
+
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointIndices::Ptr inliers, bool inside_or_outside)
+{
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_result(new pcl::PointCloud<pcl::PointXYZ>);
+	int cloud_size = cloud->points.size();
+	int inliers_size = inliers->indices.size();
+
+	if (inliers_size == 0)
+	{
+		return cloud;
+	}
+	if (cloud_size == 0)
+	{
+		return 0;
+	}
+
+	// extract the inliers
+	pcl::ExtractIndices<pcl::PointXYZ> extract;
+	extract.setInputCloud(cloud);
+	extract.setIndices(inliers);
+	switch (inside_or_outside)
+	{
+	case true:
+		extract.setNegative(true);   //get outside points
+
+	case false:
+		extract.setNegative(false);  //get inside points
+
+	}
+	extract.filter(*cloud_result);
+
+	return cloud_result;
+}
+
+pcl::PointCloud<pcl::Normal>::Ptr ExtractNormal(pcl::PointCloud<pcl::Normal>::Ptr normal, pcl::PointIndices::Ptr inliers, bool inside_or_outside)
+{
+
+	pcl::PointCloud<pcl::Normal>::Ptr normal_result(new pcl::PointCloud<pcl::Normal>);
+	int normal_size = normal->points.size();
+	int inliers_size = inliers->indices.size();
+	if (inliers_size == 0)
+	{
+		return normal;
+	}
+	if (normal_size == 0)
+	{
+		return 0;
+	}
+
+
+	pcl::ExtractIndices<pcl::Normal> extract_normals;
+	extract_normals.setInputCloud(normal);
+	extract_normals.setIndices(inliers);
+	switch (inside_or_outside)
+	{
+	case true:
+		extract_normals.setNegative(true);   //get outside points
+
+	case false:
+		extract_normals.setNegative(false);  //get inside points
+
+	}
+	extract_normals.filter(*normal_result);
+
+	return normal_result;
+}
+
+int ExtractCloudAndNormal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, pcl::PointIndices::Ptr inliers, bool inside_or_outside,
+	                       pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_result, pcl::PointCloud<pcl::Normal>::Ptr *normal_result)
+{
+	int cloud_size = cloud->points.size();
+	int normal_size = normal->points.size();
+	int inliers_size = inliers->indices.size();
+	if (normal_size != cloud_size)
+	{
+		return -1;
+	}
+	if (inliers_size == 0)
+	{
+		pcl::copyPointCloud(*cloud, **cloud_result);
+		pcl::copyPointCloud(*normal, **normal_result);
+		return 0;
+	}
+	if (cloud_size == 0)
+	{
+		return -1;
+	}
+	
+
+	pcl::ExtractIndices<pcl::PointXYZ> extract;
+	pcl::ExtractIndices<pcl::Normal> extract_normals;
+
+	extract.setInputCloud(cloud);
+	extract.setIndices(inliers);
+	extract_normals.setInputCloud(normal);
+	extract_normals.setIndices(inliers);
+	switch (inside_or_outside)
+	{
+	       case true:
+	       {
+			   extract.setNegative(true);
+		       extract_normals.setNegative(true);   //get outside points
+	       }
+		   break;
+		   
+		   case false:
+		   {
+			   extract.setNegative(false);
+			   extract_normals.setNegative(false);   //get outside points
+		   }
+		   break;
+	}
+	extract.filter(**cloud_result);
+	extract_normals.filter(**normal_result);
+	return 0;
+}
+
+
+
+
 
 
 //bool SortPolygonList(const Polygon_2& lhs, const Polygon_2& rhs)
@@ -52,7 +220,6 @@ int Patch::FixHoleAndFragmentation()
 	
 	return 0;
 }
-
 
 void FlattenInlierPointsBasedOnModel(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud, Shape model,
 	                                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_inlier,pcl::ModelCoefficients::Ptr coefficients)
@@ -160,8 +327,6 @@ void FillHole(Polygon_2 hole, pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_clou
 	MovePartsFromCloudToCloud(indices_points_inside_hole, &cloud_remainder, &cloud_remainder_normals, &cloud_inlier, &cloud_inlier_normals);
 
 }
-
-
 
 pcl::PointIndices GetIndicesOfPointsInsideAndOnPolygon(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Polygon_2 polygon)
 {
@@ -278,12 +443,11 @@ void MovePartsFromCloudToCloud(pcl::PointIndices indices, pcl::PointCloud<pcl::P
 
 }
 
-
-
 void Patch::CheckBoundary()
 {
 
 }
+
 
 
 Node::Node()
@@ -291,27 +455,26 @@ Node::Node()
 	lchild = NULL;
 	mchild = NULL;
 	rchild = NULL;
-	patch = new Patch;
 }
+
+Node::Node(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model) : Patch(cloud, normal, model)
+{
+
+}
+
 
 Node::~Node()
 {
 	delete lchild;
 	delete mchild;
 	delete rchild;
-	delete patch;
-
-
 }
 
 
 
 Tree::Tree()
 {
-	root = new Node;
-	root->lchild = NULL;
-	root->mchild = NULL;
-	root->rchild = NULL;
+
 }
 
 Tree::Tree(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normals)
@@ -320,8 +483,8 @@ Tree::Tree(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Norma
 	root->lchild = NULL;
 	root->mchild = NULL;
 	root->rchild = NULL;
-	root->patch->cloud_remainder = cloud;
-	root->patch->cloud_remainder_normals = normals;
+	root->cloud_remainder = cloud;
+	root->cloud_remainder_normals = normals;
 }
 
 Tree::~Tree()
@@ -343,7 +506,7 @@ void Tree::DestroyTree(Node *leaf)
 
 void Tree::CreateTree(Node *node, int threshold_inliers)
 {
-	if (node->patch->cloud_remainder->points.size() < threshold_inliers)
+	if (node->cloud_remainder->points.size() < threshold_inliers)
 	{
 		node->lchild = NULL;
 		node->mchild = NULL;
@@ -362,19 +525,24 @@ void Tree::CreateTree(Node *node, int threshold_inliers)
 	node->lchild = new Node;
 	node->mchild = new Node;
 	node->rchild = new Node;
+	node->lchild(node->patch->cloud_remainder, node->patch->cloud_remainder_normals);
 
 	node->lchild->patch->model = plane;
 	node->mchild->patch->model = cylinder;
 	node->rchild->patch->model = cone;
 
+	node->lchild->patch->cloud_input = node->patch->cloud_remainder;
+	node->lchild->patch->cloud_input_normals = node->patch->cloud_remainder_normals;
+	node->mchild->patch->cloud_input = node->patch->cloud_remainder;
+	node->mchild->patch->cloud_input_normals = node->patch->cloud_remainder_normals;
+	node->rchild->patch->cloud_input = node->patch->cloud_remainder;
+	node->rchild->patch->cloud_input_normals = node->patch->cloud_remainder_normals;
 
-
+	node->lchild->patch->CreatePatch
 
 	CreateTree(node->lchild, threshold_inliers);
 	CreateTree(node->mchild, threshold_inliers);
 	CreateTree(node->rchild, threshold_inliers);
-
-
 
 
 }

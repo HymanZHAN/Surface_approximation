@@ -8,7 +8,7 @@ int PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int threshold_in
 	//readParameterFile(PATH_HEAD + "\\source\\input extract indices.txt");
 
 	// create the segmentation object for plane
-	pcl::SACSegmentation<pcl::PointXYZ> seg;
+	pcl::SACSegmentation<pcl::PointXYZ> seg; 
 	// set all the parameters for the segmentation object for plane
 	setSegmentationParametersForPlane(seg);
 	// segment the largest planar component from the remaining cloud

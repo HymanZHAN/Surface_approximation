@@ -13,12 +13,13 @@
 #include "single_patch_recognition.h"
 #include "multi_patches_recognition.h"
 
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 enum Shape { plane, cylinder, cone };
 
 class Patch
 {
-public:
+private:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_input;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_inlier;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remainder;
@@ -31,11 +32,15 @@ public:
 	std::vector<int> serial_number_boundary;
 	Shape model;
 	
+public:
+	Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model);
+	//void CreatePatch();
 	int FixHoleAndFragmentation();
 	void CheckBoundary();
 
 };
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointIndices::Ptr inliers, bool inside_or_outside);
 
 bool SortPolygonList(const Polygon_2& lhs, const Polygon_2& rhs);
 
@@ -71,35 +76,32 @@ void MovePartsFromCloudToCloud(pcl::PointIndices indices, pcl::PointCloud<pcl::P
 
 
 
-class Node
+class Node: public Patch
 {
-public:
+private:
 	Node *lchild;
 	Node *mchild;
 	Node *rchild;
-	Patch *patch;
 
+public:
 	Node();
+	Node(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model);
 	~Node();
 };
 
-
-
-
-
 class Tree
 {
+private:
+	Node *root;
+
 public:
 	Tree();
 	Tree(pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::Normal>::Ptr);
 	~Tree();
-	Node *root;
+	
 	void DestroyTree(Node *leaf);
 	void CreateTree(Node *node, int threshold_inliers);
 };
-
-
-
 
 
 
