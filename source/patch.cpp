@@ -1,5 +1,11 @@
 #include "patch.h"
-#include "alpha_shape_polygons.h"
+
+
+
+//bool SortPolygonList(const Polygon_2& lhs, const Polygon_2& rhs)
+//{ 
+//	return lhs.area() > rhs.area();
+//}
 
 int Patch::FixHoleAndFragmentation()
 {
@@ -15,8 +21,12 @@ int Patch::FixHoleAndFragmentation()
 	}
 
 	//sort polygons based on area
-	std::sort(polygon_list.begin(), polygon_list.end(),
-		[](const Polygon_2& lhs, const Polygon_2& rhs) { return lhs.area() > rhs.area(); });
+	/*std::sort(polygon_list.begin(), 
+		      polygon_list.end(),
+		      [](const Polygon_2& lhs, const Polygon_2& rhs) { return lhs.area() > rhs.area(); });*/
+	//polygon_list.sort(SortPolygonList);
+
+
 	Polygon_2 polygon_max_area = polygon_list.back();
 	polygon_list.pop_back();
 
@@ -272,6 +282,100 @@ void MovePartsFromCloudToCloud(pcl::PointIndices indices, pcl::PointCloud<pcl::P
 
 void Patch::CheckBoundary()
 {
+
+}
+
+
+Node::Node()
+{
+	lchild = NULL;
+	mchild = NULL;
+	rchild = NULL;
+	patch = new Patch;
+}
+
+Node::~Node()
+{
+	delete lchild;
+	delete mchild;
+	delete rchild;
+	delete patch;
+
+
+}
+
+
+
+Tree::Tree()
+{
+	root = new Node;
+	root->lchild = NULL;
+	root->mchild = NULL;
+	root->rchild = NULL;
+}
+
+Tree::Tree(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normals)
+{
+	root = new Node;
+	root->lchild = NULL;
+	root->mchild = NULL;
+	root->rchild = NULL;
+	root->patch->cloud_remainder = cloud;
+	root->patch->cloud_remainder_normals = normals;
+}
+
+Tree::~Tree()
+{
+	DestroyTree(root);
+
+}
+
+void Tree::DestroyTree(Node *leaf)
+{
+	if (leaf != NULL)
+	{
+		DestroyTree(leaf->lchild);
+		DestroyTree(leaf->mchild);
+		DestroyTree(leaf->rchild);
+		delete leaf;
+	}
+}
+
+void Tree::CreateTree(Node *node, int threshold_inliers)
+{
+	if (node->patch->cloud_remainder->points.size() < threshold_inliers)
+	{
+		node->lchild = NULL;
+		node->mchild = NULL;
+		node->rchild = NULL;
+		return;
+	}
+	/*node->lchild->patch->cloud_input = node->patch->cloud_remainder;
+	node->lchild->patch->cloud_input_normals = node->patch->cloud_remainder_normals;
+
+	node->mchild->patch->cloud_input = node->patch->cloud_remainder;
+	node->mchild->patch->cloud_input_normals = node->patch->cloud_remainder_normals;
+
+	node->rchild->patch->cloud_input = node->patch->cloud_remainder;
+	node->rchild->patch->cloud_input_normals = node->patch->cloud_remainder_normals;*/
+
+	node->lchild = new Node;
+	node->mchild = new Node;
+	node->rchild = new Node;
+
+	node->lchild->patch->model = plane;
+	node->mchild->patch->model = cylinder;
+	node->rchild->patch->model = cone;
+
+
+
+
+	CreateTree(node->lchild, threshold_inliers);
+	CreateTree(node->mchild, threshold_inliers);
+	CreateTree(node->rchild, threshold_inliers);
+
+
+
 
 }
 

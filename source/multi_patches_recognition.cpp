@@ -1,5 +1,5 @@
 #include "multi_patches_recognition.h"
-#include "single_patch_recognition.h"
+
 
 //pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractandProjectPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
 //	                                                       pcl::PointIndices::Ptr inliers, pcl::ModelCoefficients::Ptr coefficients)
@@ -20,7 +20,8 @@ int TwoPatchesPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCl
 	pcl::copyPointCloud(**cloud, *cloud_copy);
 	pcl::copyPointCloud(**cloud_normals, *cloud_normals_copy);
 
-	
+	//Tree T;
+	//T.CreateTree(T.root, threshold_inliers);
 
 
 	return 0;
