@@ -39,6 +39,7 @@ using namespace std;
 #include "read_parameters.h"
 #include "cloud_visualizer.h"
 #include "single_patch_recognition.h"
+#include "multi_patches_recognition.h"
 //#include "two_patches_recognition.h"
 //#include "check_patch_validity.h"
 #include "geometry_tools.h"
@@ -210,7 +211,7 @@ int main(int argc, char** argv)
 		//if (!SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds))
 		//{
 
-		//	TwoPatchesPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
+		MultiPatchesPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
 		//}
 
 

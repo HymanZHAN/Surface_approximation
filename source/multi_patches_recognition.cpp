@@ -9,7 +9,7 @@
 
 
 
-int TwoPatchesPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers, 
+int MultiPatchesPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals, int threshold_inliers, 
 	                    int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
 	std::cerr << std::endl << "Two patches recognition:" << std::endl;
@@ -20,8 +20,13 @@ int TwoPatchesPartition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCl
 	pcl::copyPointCloud(**cloud, *cloud_copy);
 	pcl::copyPointCloud(**cloud_normals, *cloud_normals_copy);
 
-	//Tree T;
-	//T.CreateTree(T.root, threshold_inliers);
+	PLANE_TOL /= 2;
+	CYL_TOL /= 2;
+	CONE_TOL /= 2;
+
+
+	Tree T(cloud_copy, cloud_normals_copy, threshold_inliers);
+
 
 
 	return 0;

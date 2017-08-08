@@ -19,7 +19,7 @@ enum Shape { plane, cylinder, cone };
 
 class Patch
 {
-private:
+public:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_input;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_inlier;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remainder;
@@ -28,17 +28,71 @@ private:
 	pcl::PointCloud<pcl::Normal>::Ptr cloud_remainder_normals;
 
 	pcl::PointIndices::Ptr inliers;
+	//pcl::PointIndices indices;
 	pcl::ModelCoefficients::Ptr coefficients;
+	//pcl::ModelCoefficients coeff;
 	std::vector<int> serial_number_boundary;
-	Shape model;
+	Shape current_model;
+	int threshold_inliers;
 	
-public:
-	Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model);
+	Patch() {};
+	Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model, int threshold);
+	~Patch() {};
 	//void CreatePatch();
-	int FixHoleAndFragmentation();
-	void CheckBoundary();
+	int FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud);
+	//void CheckBoundary();
 
 };
+
+class Node : public Patch
+{
+public:
+	Node *lchild;
+	Node *mchild;
+	Node *rchild;
+
+
+	Node();
+	Node(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model, int threshold);
+	~Node();
+};
+
+class Tree
+{
+private:
+	Node *root;
+
+public:
+	Tree(pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::Normal>::Ptr, int);
+	~Tree();
+
+	
+	
+};
+
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr FlattenPatches(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Shape model, pcl::ModelCoefficients::Ptr coefficients);
+
+int ProjectInliersOnTheModel(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, Shape model, pcl::ModelCoefficients::Ptr coefficients);
+
+int RecognizeAndSegment(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model,
+	pcl::PointIndices::Ptr *inliers, pcl::ModelCoefficients::Ptr *coefficients);
+
+void DestroyTree(Node *leaf);
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointIndices::Ptr inliers, bool inside_or_outside);
+
+pcl::PointCloud<pcl::Normal>::Ptr ExtractNormal(pcl::PointCloud<pcl::Normal>::Ptr normal, pcl::PointIndices::Ptr inliers, bool inside_or_outside);
+
+int ExtractCloudAndNormal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, pcl::PointIndices::Ptr inliers,
+	pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_result, pcl::PointCloud<pcl::Normal>::Ptr *normal_result, bool inside_or_outside);
+
+int ExtractCloudAndNormal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, pcl::PointIndices::Ptr inliers,
+	pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_inside, pcl::PointCloud<pcl::Normal>::Ptr *normal_inside,
+	pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_outside, pcl::PointCloud<pcl::Normal>::Ptr *normal_outside);
+
+
+void CreateTree(Node *node, int threshold_inliers);
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointIndices::Ptr inliers, bool inside_or_outside);
 
@@ -76,32 +130,7 @@ void MovePartsFromCloudToCloud(pcl::PointIndices indices, pcl::PointCloud<pcl::P
 
 
 
-class Node: public Patch
-{
-private:
-	Node *lchild;
-	Node *mchild;
-	Node *rchild;
 
-public:
-	Node();
-	Node(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal, Shape model);
-	~Node();
-};
-
-class Tree
-{
-private:
-	Node *root;
-
-public:
-	Tree();
-	Tree(pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::Normal>::Ptr);
-	~Tree();
-	
-	void DestroyTree(Node *leaf);
-	void CreateTree(Node *node, int threshold_inliers);
-};
 
 
 
