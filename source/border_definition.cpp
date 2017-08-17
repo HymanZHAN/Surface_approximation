@@ -99,6 +99,48 @@ Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_
 	return plane_data;
 }
 
+Eigen::MatrixXf MainPlanarPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_pla_patch_cloud, std::vector<float> plane_param)
+{
+	//We compute the convex hull of the flatten cloud. it returns the a vector of 2dim coordinates corresponding to the vertices of the CH
+	std::vector<point> convex_hull_points = convexHullForPoints(transformed_pla_patch_cloud);
+
+	//std::cerr << "number of CH points = " << convex_hull_points.size() << endl;
+	//We recover the indices in the flattened cloud corresponding to the vertices of the convex hull
+	std::vector<int> hull_indexes = IdentifyIndexOfCandiatePointInFlattenCloud(transformed_pla_patch_cloud, convex_hull_points);
+
+	//We identify the candidate lines corresponding to sides of the CH such that they are aligned with some
+	//cylinder generatrix lines
+	std::vector<int> marker_chain;  //this is the vector the assigns to every candidate line an index corresponding to which chain they belong to
+									//We recover the indices in the flattened cloud corresponding to the vertices of the candidate lines
+
+
+									//We join the candidate lines in chains of candidate lines, whenever they are adjacent and with similar orientations
+	std::vector<int> plane_chain = IdentifyPlaneChains(transformed_pla_patch_cloud, hull_indexes, marker_chain);
+	const int num_plane_chains = plane_chain.size();
+	const int num_marker_chains = marker_chain.size();
+
+	cerr << endl;
+	cerr << "Indices of vertices extremes of cylinder chains (read 2 by 2):" << endl;
+	for (int i = 0; i < num_plane_chains; i = i + 2)
+	{
+		cerr << plane_chain[i] << "  " << plane_chain[i + 1] << endl;
+	}
+
+	visualizeShapes(transformed_pla_patch_cloud, "Plane chains", hull_indexes, plane_chain);
+
+	//We build a matrix of dimensions (num of candidate lines assigned to a chain) x 3
+	//for every line we store: index head of the candidate line; index tail of the candidate line; index corresponding to the assigned chain
+	Eigen::MatrixXf plane_data(num_marker_chains, 3);
+	for (int iter = 0; iter< num_marker_chains; iter++)
+	{
+		plane_data(iter, 0) = plane_chain[2 * iter];
+		plane_data(iter, 1) = plane_chain[2 * iter + 1];
+		plane_data(iter, 2) = marker_chain[iter];
+	}
+
+	return plane_data;
+}
+
 pcl::PointCloud<pcl::PointXYZ>::Ptr transformPlanarPatchPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr planar_patch_cloud, std::vector<float> plane_param)
 {
 	Eigen::Matrix3f transform_matrix = getTransformMatrixForAlignmentWithNormalToPlane(plane_param);
@@ -399,7 +441,7 @@ std::vector<int> IdentifyPlaneChains(pcl::PointCloud<pcl::PointXYZ>::Ptr plane_c
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///CYLINDER
-Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cyl_patch_cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<float> cyl_param, double *convex_hull_area)
+Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<float> cyl_param, double *convex_hull_area)
 {
 	
 	//std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
@@ -432,7 +474,7 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transfo
 	//	std::cerr<< indexes[i]<<endl;
 
 	//We join the candidate lines in chains of candidate lines, whenever they are adjacent and with similar orientations
-	std::vector<int> cyl_chain = IdentifyChains(transformed_cyl_patch_cloud, indexes, marker_chain);
+	std::vector<int> cyl_chain = IdentifyChains(flattened_cloud, indexes, marker_chain);
 
 	const int num_cyl_chains = cyl_chain.size();
 	const int num_marker_chains = marker_chain.size();
@@ -450,8 +492,73 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transfo
 	Eigen::MatrixXf cyl_data(num_marker_chains, 3);
 	for (int iter = 0; iter< num_marker_chains; iter++)
 	{
-		cyl_data(iter, 0) = indexes[2 * iter];
+		/*cyl_data(iter, 0) = indexes[2 * iter];
 		cyl_data(iter, 1) = indexes[2 * iter + 1];
+		cyl_data(iter, 2) = marker_chain[iter];*/
+		cyl_data(iter, 0) = cyl_chain[2 * iter];
+		cyl_data(iter, 1) = cyl_chain[2 * iter + 1];
+		cyl_data(iter, 2) = marker_chain[iter];
+	}
+
+	return cyl_data;
+}
+
+Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<float> cyl_param)
+{
+
+	//std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud= transformConicalPatchPoints(conical_patch_cloud, cone_param);	
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud= FlattenCloud(canonical_output_cloud, cone_param);
+
+	//We compute the convex hull of the flatten cloud. it returns the a vector of 2dim coordinates corresponding to the vertices of the CH
+	std::vector<point> convex_hull_points = convexHullForPoints(flattened_cloud);
+	//std::cerr << "number of CH points = " << convex_hull_points.size() << endl;
+
+
+
+	//We recover the indices in the flattened cloud corresponding to the vertices of the convex hull
+	std::vector<int> hull_indexes = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points);
+	//cout << "border index is " << hull_indexes.size() <<endl;
+	//cout << "border convex is " << convex_hull_points.size() <<endl;
+
+	//We identify the candidate lines corresponding to sides of the CH such that they are aligned with some
+	//cylinder generatrix lines
+	std::vector<point> Candidate_points = CylinderCandiateLines(convex_hull_points, cyl_param);
+	std::vector<int> marker_chain;  //this is the vector the assigns to every candidate line an index corresponding to which chain they belong to
+	const int num_candidates_vertices = Candidate_points.size();
+	//cerr<<"Number of candidate lines: "<< num_candidates_vertices/2<< endl;	
+	//We recover the indices in the flattened cloud corresponding to the vertices of the candidate lines
+	std::vector<int> indexes = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, Candidate_points);
+
+	////We print the just recovered indices corresponding to the points extremes of the candidate lines (they need to be read 2 by 2)
+	//cerr<<"Coordinates of vertices to form candidate line: "<<endl;
+	//for (int i = 0; i < num_candidates_vertices; i++)
+	//	std::cerr<< indexes[i]<<endl;
+
+	//We join the candidate lines in chains of candidate lines, whenever they are adjacent and with similar orientations
+	std::vector<int> cyl_chain = IdentifyChains(flattened_cloud, indexes, marker_chain);
+
+	const int num_cyl_chains = cyl_chain.size();
+	const int num_marker_chains = marker_chain.size();
+
+	cerr << endl;
+	cerr << "Indices of vertices extremes of cylinder chains (read 2 by 2):" << endl;
+	for (int i = 0; i < num_cyl_chains; i = i + 2)
+		cerr << cyl_chain[i] << "  " << cyl_chain[i + 1] << endl;
+
+	//visualizeShapes(flattened_cloud, "Candidate Lines",hull_indexes, indexes);
+	visualizeShapes(flattened_cloud, "Cylinder chains", hull_indexes, cyl_chain);
+
+	//We build a matrix of dimensions (num of candidate lines assigned to a chain) x 3
+	//for every line we store: index head of the candidate line; index tail of the candidate line; index corresponding to the assigned chain
+	Eigen::MatrixXf cyl_data(num_marker_chains, 3);
+	for (int iter = 0; iter< num_marker_chains; iter++)
+	{
+		/*cyl_data(iter, 0) = indexes[2 * iter];
+		cyl_data(iter, 1) = indexes[2 * iter + 1];
+		cyl_data(iter, 2) = marker_chain[iter];*/
+		cyl_data(iter, 0) = cyl_chain[2 * iter];
+		cyl_data(iter, 1) = cyl_chain[2 * iter + 1];
 		cyl_data(iter, 2) = marker_chain[iter];
 	}
 
@@ -648,7 +755,7 @@ std::vector<float> computePlanePassingThroughPointWithGivenNormal(Eigen::Vector3
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //CONE
 
-Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cone_patch_cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<float> cone_param, double *convex_hull_area)
+Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<float> cone_param, double *convex_hull_area)
 {
 	////rotate the cone so that the axis aligns with the +Z axis, the origin point is the conic point
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud = transformConicalPatchPoints(conical_patch_cloud, cone_param);
@@ -731,9 +838,9 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed
 	std::vector<int>indexes2 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, Candidate_points2);
 
 	std::vector<int> marker_chain1, marker_chain2;
-	std::vector<int> cone_chain1 = IdentifyChains(transformed_cone_patch_cloud, indexes1, marker_chain1);
-	std::vector<int> cone_chain2 = IdentifyChains(transformed_cone_patch_cloud, indexes2, marker_chain2);
-
+	std::vector<int> cone_chain1 = IdentifyChains(flattened_cloud, indexes1, marker_chain1);
+	std::vector<int> cone_chain2 = IdentifyChains(flattened_cloud, indexes2, marker_chain2);
+	//visualizePointCloud(transformed_cone_patch_cloud, flattened_cloud, "f+t", xz);
 
 	std::vector<int> indexes;
 	for (int i = 0; i < indexes1.size(); i++)
@@ -791,8 +898,164 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed
 
 	for (int iter = 0; iter< num_marker_chains; iter++)
 	{
-		cone_data(iter, 0) = indexes[2 * iter];
+		/*cone_data(iter, 0) = indexes[2 * iter];
 		cone_data(iter, 1) = indexes[2 * iter + 1];
+		cone_data(iter, 2) = marker_chain[iter];*/
+		cone_data(iter, 0) = cone_chain[2 * iter];
+		cone_data(iter, 1) = cone_chain[2 * iter + 1];
+		cone_data(iter, 2) = marker_chain[iter];
+	}
+	return cone_data;
+}
+
+Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, std::vector<float> cone_param)
+{
+	////rotate the cone so that the axis aligns with the +Z axis, the origin point is the conic point
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr canonical_output_cloud = transformConicalPatchPoints(conical_patch_cloud, cone_param);
+	////pcl::io::savePCDFileASCII("C:\\Extract_indices\\build\\canonical_output_cloud.pcd", *canonical_output_cloud);
+	////visualizePointCloud(canonical_output_cloud,"canonical_output_cloud");
+
+	////cout << endl << " points.size_before = " << canonical_output_cloud->points.size() <<endl <<endl;
+	////canonical_output_cloud->push_back(pcl::PointXYZ (500, 600,2000));
+	////cout << endl << " points.size_after = " << canonical_output_cloud->points.size() <<endl <<endl;
+	////visualizePointCloud(canonical_output_cloud,"canonical_output_cloud");
+
+	////flatten 3d point cloud into XOZ-Plane
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud = FlattenCloud(canonical_output_cloud, cone_param);
+	//double alpha_shape_area = getAlphaShapeArea(flatten_cloud);
+	//displayAlphaShape(flatten_cloud);
+	//std::cout << std::endl << "alpha_shape_area = " << alpha_shape_area << std::endl;
+
+	Eigen::Vector2f flatten_point_i;
+	float alpha;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr flatten_cloud1(new pcl::PointCloud<pcl::PointXYZ>), flatten_cloud2(new pcl::PointCloud<pcl::PointXYZ>);
+	std::vector<point> convex_hull_points, convex_hull_points1, convex_hull_points2;
+	for (int i = 0; i < flattened_cloud->size(); i++)
+	{
+		flatten_point_i[0] = flattened_cloud->points[i].x;
+		flatten_point_i[1] = flattened_cloud->points[i].z;
+		alpha = atan2(flatten_point_i[1], flatten_point_i[0]);
+		//cutting the fan into two halves, the first half of which lies in range (max_gap/2, (max_gap + beta_fan)/2) 
+		if (alpha >= ((max_gap*0.5) / (2 * M_PI)) * beta_max - 0.1 &&  alpha <= ((max_gap / (2 * M_PI)) * beta_max + beta_fan)* 0.5)
+		{
+			flatten_cloud1->push_back(pcl::PointXYZ(flatten_point_i[0], 0, flatten_point_i[1]));
+		}
+		else
+		{
+			flatten_cloud2->push_back(pcl::PointXYZ(flatten_point_i[0], 0, flatten_point_i[1]));
+		}
+	}
+	//visualizePointCloud(flatten_cloud, "flatten_cloud");
+	//visualizePointCloud(flatten_cloud1, "flatten_cloud1");
+	//visualizePointCloud(flatten_cloud2, "flatten_cloud2");
+
+	convex_hull_points1 = convexHullForPoints(flatten_cloud1);
+	convex_hull_points2 = convexHullForPoints(flatten_cloud2);
+	convex_hull_points = convexHullForPoints(flattened_cloud);
+	//*convex_hull_area = getConvexHullArea(convex_hull_points);
+
+	//std::cerr << "number of CH points = " << convex_hull_points.size() << endl;
+	//visualizeConvexHull(flatten_cloud, "1hull_indexes2", hull_indexes2);
+	//visualizeConvexHull(flatten_cloud, "1hull_indexes1", hull_indexes1);
+
+	convex_hull_points1 = GenerateConvexHull(convex_hull_points1);
+	convex_hull_points2 = GenerateConvexHull(convex_hull_points2);
+	//hull_indexes2 = IdentifyIndexOfCandiatePointInFlattenCloud(flatten_cloud, convex_hull_points2);
+	//visualizeConvexHull(flatten_cloud, "2hull_indexes2", hull_indexes2);
+	//The function named sequenceConvexHull leads to the mess (when testing Cone_curved_generatrix_2.stl, there is nothing in candidate_line1)
+
+	//hull_indexes1 = IdentifyIndexOfCandiatePointInFlattenCloud(flatten_cloud, convex_hull_points1);
+	//visualizeConvexHull(flatten_cloud, "2hull_indexes1", hull_indexes1);
+	convex_hull_points1 = SequenceConvexHull(convex_hull_points1);
+	convex_hull_points2 = SequenceConvexHull(convex_hull_points2);
+
+	/*hull_indexes1 = IdentifyIndexOfCandiatePointInFlattenCloud(flatten_cloud, convex_hull_points1);
+	visualizeConvexHull(flatten_cloud, "3hull_indexes1", hull_indexes1);
+	*/
+
+	//get the data of points which are on the convex hull 
+	std::vector<int> hull_indexes1 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points1);
+	std::vector<int> hull_indexes2 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points2);
+	std::vector<int> hull_indexes = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points);
+
+	/*visualizeConvexHull(flatten_cloud, "hull_indexes", hull_indexes);
+	visualizeConvexHull(flatten_cloud, "4hull_indexes1", hull_indexes1);
+	visualizeConvexHull(flatten_cloud, "hull_indexes2", hull_indexes2);*/
+
+
+
+	std::vector<point> Candidate_points1 = ConeCandiateLines(convex_hull_points1);
+	std::vector<point> Candidate_points2 = ConeCandiateLines(convex_hull_points2);
+
+	std::vector<int>indexes1 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, Candidate_points1);
+	std::vector<int>indexes2 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, Candidate_points2);
+
+	std::vector<int> marker_chain1, marker_chain2;
+	std::vector<int> cone_chain1 = IdentifyChains(flattened_cloud, indexes1, marker_chain1);
+	std::vector<int> cone_chain2 = IdentifyChains(flattened_cloud, indexes2, marker_chain2);
+	//visualizePointCloud(transformed_cone_patch_cloud, flattened_cloud, "f+t", xz);
+
+	std::vector<int> indexes;
+	for (int i = 0; i < indexes1.size(); i++)
+	{
+		indexes.push_back(indexes1[i]);
+	}
+	for (int i = 0; i < indexes2.size(); i++)
+	{
+		indexes.push_back(indexes2[i]);
+	}
+
+	std::vector<int> marker_chain;
+	for (int i = 0; i < marker_chain1.size(); i++)
+	{
+		marker_chain.push_back(marker_chain1[i]);
+	}
+	for (int i = 0; i < marker_chain2.size(); i++)
+	{
+		marker_chain.push_back(marker_chain2[i] + marker_chain1[marker_chain1.size() - 1]);
+	}
+
+	std::vector<int> cone_chain;
+	for (int i = 0; i < cone_chain1.size(); i++)
+	{
+		cone_chain.push_back(cone_chain1[i]);
+	}
+	for (int i = 0; i < cone_chain2.size(); i++)
+	{
+		cone_chain.push_back(cone_chain2[i]);
+	}
+
+	//Eigen::Vector2f point; 
+	//const int num = hull_indexes.size();
+	//for(std::size_t i = 0; i < num-1; i++)
+	//{
+	//	point[0]=flatten_cloud->at(hull_indexes[i]).x;
+	//	point[1]=flatten_cloud->at(hull_indexes[i]).z;
+	//	cout << "point = " << point[0] << " , " << point[1] << endl;
+	//}
+
+
+
+	//visualizeShapes(flatten_cloud, "Candidate Lines",hull_indexes,indexes);
+	visualizeShapes(flattened_cloud, "cone chains", hull_indexes, cone_chain);
+
+	const int num_marker_chains = marker_chain.size();
+	const int num_cone_chain = cone_chain.size();
+	Eigen::MatrixXf cone_data(num_marker_chains, 3);
+	cerr << endl;
+	cerr << "Indices of vertices extremes of cone chains (read 2 by 2):" << endl;
+	for (int i = 0; i < num_cone_chain; i = i + 2)
+	{
+		cerr << cone_chain[i] << "  " << cone_chain[i + 1] << endl;
+	}
+
+	for (int iter = 0; iter< num_marker_chains; iter++)
+	{
+		/*cone_data(iter, 0) = indexes[2 * iter];
+		cone_data(iter, 1) = indexes[2 * iter + 1];
+		cone_data(iter, 2) = marker_chain[iter];*/
+		cone_data(iter, 0) = cone_chain[2 * iter];
+		cone_data(iter, 1) = cone_chain[2 * iter + 1];
 		cone_data(iter, 2) = marker_chain[iter];
 	}
 	return cone_data;
@@ -831,9 +1094,9 @@ std::vector<int> IdentifyChains(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_
 	while (i < indexes.size())
 	{
 		A[0] = transformed_cone_patch_cloud->at(indexes[i]).x;
-		A[1] = transformed_cone_patch_cloud->at(indexes[i]).y;
+		A[1] = transformed_cone_patch_cloud->at(indexes[i]).z;
 		B[0] = transformed_cone_patch_cloud->at(indexes[i + 1]).x;
-		B[1] = transformed_cone_patch_cloud->at(indexes[i + 1]).y;
+		B[1] = transformed_cone_patch_cloud->at(indexes[i + 1]).z;
 		norm_one = (B - A).norm();
 		if (norm_one == 0.0)
 		{
@@ -856,9 +1119,9 @@ std::vector<int> IdentifyChains(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_
 		while (j<indexes.size())
 		{
 			C[0] = transformed_cone_patch_cloud->at(indexes[j]).x;
-			C[1] = transformed_cone_patch_cloud->at(indexes[j]).y;
+			C[1] = transformed_cone_patch_cloud->at(indexes[j]).z;
 			D[0] = transformed_cone_patch_cloud->at(indexes[j + 1]).x;
-			D[1] = transformed_cone_patch_cloud->at(indexes[j + 1]).y;
+			D[1] = transformed_cone_patch_cloud->at(indexes[j + 1]).z;
 			norm_second = (D - C).norm();
 			if (norm_second == 0.0)
 			{
@@ -887,7 +1150,7 @@ std::vector<int> IdentifyChains(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_
 				}
 				else
 				{
-					marker_chain.push_back(marker);
+					//marker_chain.push_back(marker);
 					cone_chain.pop_back();
 					cone_chain.push_back(indexes[j + 1]);
 				}
@@ -985,10 +1248,10 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FlattenCloud(pcl::PointCloud<pcl::PointXYZ>:
 	float x_cordi, z_cordi, rad_1, rad_2, sine_angle = sin(cone_param[6]);
 	Eigen::Vector3f point;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr Flattened_cloud_2D(new pcl::PointCloud<pcl::PointXYZ>);
-
+	//visualizePointCloud(transformed_cone_patch_cloud, "transformed_cone_patch_cloud", xy);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud = SortCloud(transformed_cone_patch_cloud, cone_param);
 	const int num_nodes = sorted_cloud->points.size();
-	//pcl::io::savePCDFileASCII("C:\\Extract_indices\\sorted_cloud.pcd", *sorted_cloud);
+	//pcl::io::savePCDFileASCII("C:\\Development\\Surface_approximation\\sorted_cloud.pcd", *sorted_cloud);
 	//outputCloudOnExcel(sorted_cloud, "sorted_cloud" );
 
 	float cutting_dirc = CuttingDirection(sorted_cloud);
@@ -1194,14 +1457,33 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud)
 
 	//find cutting direction2
 	float cutting_direction2;
+	bool flag = false;
 	for (int i = edge2_index; i < num_nodes; ++i)
 	{
 		if (sorted_cloud->at(i).x >= 0.8 * max_distance2)
 		{
 			cutting_direction2 = sorted_cloud->at(i).y;
 			k = i;
+			flag = true;
 			break;
 		}
+	}
+
+	if (flag == false)
+	{
+		for (int i = 0; sorted_cloud->at(i).y > 3; ++i)
+		{
+			if (sorted_cloud->at(i).x >= 0.8 * max_distance2)
+			{
+				cutting_direction2 = sorted_cloud->at(i).y;
+				k = i;
+				break;
+			}
+		}
+		max_gap = max_gap + abs(cutting_direction2 - edge2 - 2 * M_PI);
+		float cutting_dirc = cutting_direction1;
+		cutting_dirc -= 0.5 * max_gap;
+		return cutting_dirc;
 	}
 	//cout << "cutting direction 2: "<< sorted_cloud->at(k).x<<" , "<<sorted_cloud->at(k).y<<" , "<<sorted_cloud->at(k).z<<endl<<endl;
 

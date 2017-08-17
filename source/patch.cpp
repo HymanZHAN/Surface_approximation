@@ -45,7 +45,7 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 	//After finding the model, extracting it from the whole panel
 	//Here, there is no need to worry about if the parameters exist because RecognizeAndSegment Function already checked for remaining operations
 	ExtractCloudAndNormal(cloud_input, cloud_input_normals, inliers, &cloud_inlier, &cloud_inlier_normals, &cloud_remainder, &cloud_remainder_normals);
-	visualizePointCloud(cloud_input, cloud_inlier, "before fixing holes and fragments", xy);
+	//visualizePointCloud(cloud_input, cloud_inlier, "before fixing holes and fragments", xy);
 
 		/*for (auto it = cloud_inlier->begin(); it != cloud_inlier->end(); ++it)
 		{
@@ -53,18 +53,109 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 		};*/
 	//Project the inliers on the RANSAC parametric model.
 	ProjectInliersOnTheModel(&cloud_inlier, current_model, coefficients);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenPatches(cloud_inlier, current_model,coefficients);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenPatches(cloud_inlier, current_model, coefficients);
 
 	//alpha shape
-	FixHoleAndFragmentation(flattened_cloud);
-	visualizePointCloud(cloud_input, cloud_inlier, "after fixing holes and fragments", xy);
+	FixHoleAndFragmentation(&flattened_cloud);
+	//visualizePointCloud(cloud_input, cloud_inlier, "after fixing holes and fragments", xy);
 
-
+	FindBorders(flattened_cloud);
+	if (CheckPiecesInCloudRemainder(cloud_remainder))
+	{
+		inliers->indices.clear();
+	}
 
 
 	std::cout << "cloud_remainder.size = " << cloud_remainder->points.size() << std::endl;
 
 
+}
+
+bool CheckPiecesInCloudRemainder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remainder)
+{
+	if (cloud_remainder->points.size() == 0)
+	{
+		return true;
+	}
+	// Creating the KdTree object for the search method of the extraction
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+	tree->setInputCloud(cloud_remainder);
+
+	//pcl::PCDWriter writer;
+	//std::stringstream ss;
+	//ss << "cloud_cluster" << ".pcd";
+	//writer.write<pcl::PointXYZ>(ss.str(), *cloud_remainder, false);
+
+	std::vector<pcl::PointIndices> cluster_indices;
+	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+	ec.setClusterTolerance(20); 
+	ec.setMinClusterSize(10);
+	ec.setMaxClusterSize(25000);
+	ec.setSearchMethod(tree);
+	ec.setInputCloud(cloud_remainder);
+	ec.extract(cluster_indices);
+	int size = cluster_indices.size();
+	if (size > 1)
+	{
+		return true; //It means there is only one piece in cloud_remainder
+	}
+	else
+	{
+		return false;  //It means there is more than one piece in cloud_remainder
+	}
+	
+}
+
+int Patch::FindBorders(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud)
+{
+	double convex_hull_area;
+	Eigen::MatrixXf temp_patch_data;
+	switch (current_model)
+	{
+		   case Shape::plane:
+       	   {
+			   temp_patch_data = MainPlanarPatch(flattened_cloud, coefficients->values);		   
+	       }
+	       break;
+
+	       case Shape::cylinder:
+	       {
+			   temp_patch_data = MainCylindricalPatch(flattened_cloud, coefficients->values);
+	       }
+	       break;
+
+	       case Shape::cone:
+	       {
+			   temp_patch_data = MainConicalPatch(flattened_cloud, coefficients->values, &convex_hull_area);
+	       }
+	       break;
+	}
+	int size_temp_patch_data = temp_patch_data.size() / 3;
+	if (size_temp_patch_data < 1)
+	{
+		std::cout << "Cannot find borders" << std::endl;
+		return 0;
+	}
+	std::vector<int> sub_serial_number_boundary;
+	sub_serial_number_boundary.push_back(temp_patch_data(0, 0));
+	sub_serial_number_boundary.push_back(temp_patch_data(0, 1));
+	for (int i = 1; i < size_temp_patch_data; i++)
+	{
+		if (temp_patch_data(i, 2) == temp_patch_data(i - 1, 2))
+		{
+			//sub_serial_number_boundary.push_back(temp_patch_data(i, 0));
+			sub_serial_number_boundary.push_back(temp_patch_data(i, 1));
+		}
+		else
+		{
+			serial_number_boundary.push_back(sub_serial_number_boundary);
+			sub_serial_number_boundary.clear();
+			sub_serial_number_boundary.push_back(temp_patch_data(i, 0));
+			sub_serial_number_boundary.push_back(temp_patch_data(i, 1));
+		}
+	}
+	serial_number_boundary.push_back(sub_serial_number_boundary);
+	return 0;
 }
 
 //There is no need to worry about if the parameters exist because RecognizeAndSegment Function already checked for remaining operations
@@ -387,14 +478,14 @@ bool SortPolygonList(const Polygon_2& lhs, const Polygon_2& rhs)
 	return lhs.area() > rhs.area();
 }
 
-int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud)
+int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud)
 {
 	//flatten
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	//FlattenInlierPointsBasedOnModel(&flattened_cloud, Patch::current_model, Patch::cloud_inlier, Patch::coefficients);
 
-	Polygon_list polygon_list = getAlphaShape(flattened_cloud);
-	displayAlphaShape(flattened_cloud);
+	Polygon_list polygon_list = getAlphaShape(*flattened_cloud);
+	displayAlphaShape(*flattened_cloud);
 
 	if (polygon_list.size() == 1)  // there is one piece without hole inside
 	{
@@ -419,6 +510,7 @@ int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened
 	//when polygon_list.size()> 0, there are other pieces which need to be given back to cloud_input
 	if (polygon_list.size() > 0) 
 	{
+		// give back other pieces to cloud_remainder and only leave main part in flattened_cloud
 		GiveBackOtherPiecesToCloud(&(this->cloud_inlier), &(this->cloud_inlier_normals), &(this->cloud_remainder), 
 			                       &(this->cloud_remainder_normals), flattened_cloud, polygon_max_area);
 	}
@@ -429,7 +521,7 @@ int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened
 	}
 	else
 	{
-		FillHole(hole, flattened_cloud, &(this->cloud_inlier), &(this->cloud_inlier_normals), &(this->cloud_remainder), &(this->cloud_remainder_normals));
+		FillHole(hole, *flattened_cloud, &(this->cloud_inlier), &(this->cloud_inlier_normals), &(this->cloud_remainder), &(this->cloud_remainder_normals));
 	}
 	
 	return 0;
@@ -480,10 +572,10 @@ Polygon_2 CheckHoleInside(Polygon_2 polygon_max_area, Polygon_list *polygon_list
 
 void GiveBackOtherPiecesToCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_inlier, pcl::PointCloud<pcl::Normal>::Ptr *cloud_inlier_normals,
 	                            pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_remainder, pcl::PointCloud<pcl::Normal>::Ptr *cloud_remainder_normals,
-	                            pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, Polygon_2 polygon_max_area)
+	                            pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud, Polygon_2 polygon_max_area)
 {
 	
-	pcl::PointIndices real_indices = GetIndicesOfPointsInsideAndOnPolygon(flattened_cloud, polygon_max_area);
+	pcl::PointIndices real_indices = GetIndicesOfPointsInsideAndOnPolygon(*flattened_cloud, polygon_max_area);
 	
 	
 	//update cloud data
@@ -511,6 +603,14 @@ void GiveBackOtherPiecesToCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_inlie
 	
 	(**cloud_remainder) += (*temp_cloud);
 	(**cloud_remainder_normals) += (*temp_cloud_normals);
+
+	//visualizePointCloud(*flattened_cloud, "before extract", xz);
+	pcl::ExtractIndices<pcl::PointXYZ> extract_flattened_cloud;
+	extract_flattened_cloud.setInputCloud(*flattened_cloud);
+	extract_flattened_cloud.setIndices(real_inliers);
+	extract_flattened_cloud.setNegative(false);
+	extract_flattened_cloud.filter(**flattened_cloud);
+	//visualizePointCloud(*flattened_cloud, "after extract", xz);
 
 }
 

@@ -221,7 +221,7 @@ int FindCylinderBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointClo
 
 	//convex hull
 	double convex_hull_area;
-	Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(transformed_cyl_patch_cloud, flattened_cloud, coefficients->values, &convex_hull_area);
+	Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(flattened_cloud, coefficients->values, &convex_hull_area);
 	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
 	std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
 
@@ -420,7 +420,7 @@ int FindConeBorder(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<p
 
 	//convex hull
 	double convex_hull_area;
-	Eigen::MatrixXf temp_patch_data = MainConicalPatch(transformed_cone_patch_cloud, flattened_cloud, coefficients->values, &convex_hull_area);
+	Eigen::MatrixXf temp_patch_data = MainConicalPatch(flattened_cloud, coefficients->values, &convex_hull_area);
 	std::cout << "alpha_shape_area = " << alpha_shape_area << std::endl;
 	std::cout << "convex_hull_area = " << convex_hull_area << std::endl;
 

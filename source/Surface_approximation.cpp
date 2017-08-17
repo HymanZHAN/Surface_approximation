@@ -210,8 +210,7 @@ int main(int argc, char** argv)
 
 		//if (!SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds))
 		//{
-
-		MultiPatchesPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
+			MultiPatchesPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
 		//}
 
 
