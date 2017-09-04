@@ -34,7 +34,8 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 		   }
 		   break;
 	    }
-			std::cout << "in the input cloud." << std::endl;
+		std::cout << "in the input cloud." << std::endl;
+		inliers->indices.clear();
 		return;
 	}
 	//cloud_inlier = ExtractCloud(cloud_input, (this->inliers), false);
@@ -44,8 +45,12 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 
 	//After finding the model, extracting it from the whole panel
 	//Here, there is no need to worry about if the parameters exist because RecognizeAndSegment Function already checked for remaining operations
+
+	
 	ExtractCloudAndNormal(cloud_input, cloud_input_normals, inliers, &cloud_inlier, &cloud_inlier_normals, &cloud_remainder, &cloud_remainder_normals);
-	//visualizePointCloud(cloud_input, cloud_inlier, "before fixing holes and fragments", xy);
+	DisplayCoefficients(current_model, inliers, coefficients);
+	visualizePointCloud(cloud_input, cloud_inlier, "before fixing holes and fragments", xy);
+	//visualizePointCloud(cloud_inlier, "before fixing holes and fragments", xy);
 
 		/*for (auto it = cloud_inlier->begin(); it != cloud_inlier->end(); ++it)
 		{
@@ -53,15 +58,18 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 		};*/
 	//Project the inliers on the RANSAC parametric model.
 	ProjectInliersOnTheModel(&cloud_inlier, current_model, coefficients);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenPatches(cloud_inlier, current_model, coefficients);
+	float max_gap;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenPatches(cloud_inlier, current_model, coefficients, &max_gap);
 
 	//alpha shape
-	FixHoleAndFragmentation(&flattened_cloud);
-	//visualizePointCloud(cloud_input, cloud_inlier, "after fixing holes and fragments", xy);
+	FixHoleAndFragmentation(&flattened_cloud, &max_gap);
+	visualizePointCloud(cloud_input, cloud_inlier, "after fixing holes and fragments", xy);
+	//visualizePointCloud(cloud_inlier, "after fixing holes and fragments", xy);
 
-	FindBorders(flattened_cloud);
+	FindBorders(flattened_cloud, max_gap);
 	if (CheckPiecesInCloudRemainder(cloud_remainder))
 	{
+		std::cout << "more than 1 clusters in cloud_remainder" << std::endl;
 		inliers->indices.clear();
 	}
 
@@ -69,6 +77,42 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 	std::cout << "cloud_remainder.size = " << cloud_remainder->points.size() << std::endl;
 
 
+}
+
+void DisplayCoefficients(Shape model, pcl::PointIndices::Ptr inliers, pcl::ModelCoefficients::Ptr coefficients)
+{
+	std::cout << "inliers.size = " << inliers->indices.size() << std::endl;
+	switch (model)
+	{
+	       case Shape::plane:
+		   {
+			   std::cerr << "coef plane: " << std::endl;
+			   std::cerr << "Ax + By + Cz + D = 0" << std::endl;
+			   std::cerr << "A: " << coefficients->values[0] << std::endl;
+			   std::cerr << "B: " << coefficients->values[1] << std::endl;
+			   std::cerr << "C: " << coefficients->values[2] << std::endl;
+			   std::cerr << "D: " << coefficients->values[3] << std::endl;
+		   }
+	       break;
+
+	       case Shape::cylinder:
+	       {
+			   std::cerr << "coef cylinder: " << std::endl;
+			   std::cerr << "appex:        " << coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << std::endl;
+			   std::cerr << "central axis: " << coefficients->values[3] << ", " << coefficients->values[4] << ", " << coefficients->values[5] << std::endl;
+			   std::cerr << "radius:       " << coefficients->values[6] << std::endl;
+	       }
+	       break;
+
+	       case Shape::cone:
+	       {
+			   std::cerr << "coef cone: " << std::endl;
+			   std::cerr << "appex:        " << coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << std::endl;
+			   std::cerr << "central axis: " << coefficients->values[3] << ", " << coefficients->values[4] << ", " << coefficients->values[5] << std::endl;
+			   std::cerr << "semi-angle:   " << coefficients->values[6] << std::endl;
+	       }
+	       break;
+	}
 }
 
 bool CheckPiecesInCloudRemainder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remainder)
@@ -81,19 +125,15 @@ bool CheckPiecesInCloudRemainder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remai
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
 	tree->setInputCloud(cloud_remainder);
 
-	//pcl::PCDWriter writer;
-	//std::stringstream ss;
-	//ss << "cloud_cluster" << ".pcd";
-	//writer.write<pcl::PointXYZ>(ss.str(), *cloud_remainder, false);
-
 	std::vector<pcl::PointIndices> cluster_indices;
 	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 	ec.setClusterTolerance(20); 
 	ec.setMinClusterSize(10);
-	ec.setMaxClusterSize(25000);
+	ec.setMaxClusterSize(500000);
 	ec.setSearchMethod(tree);
 	ec.setInputCloud(cloud_remainder);
 	ec.extract(cluster_indices);
+
 	int size = cluster_indices.size();
 	if (size > 1)
 	{
@@ -106,7 +146,7 @@ bool CheckPiecesInCloudRemainder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remai
 	
 }
 
-int Patch::FindBorders(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud)
+int Patch::FindBorders(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, float max_gap)
 {
 	double convex_hull_area;
 	Eigen::MatrixXf temp_patch_data;
@@ -126,7 +166,7 @@ int Patch::FindBorders(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud)
 
 	       case Shape::cone:
 	       {
-			   temp_patch_data = MainConicalPatch(flattened_cloud, coefficients->values, &convex_hull_area);
+			   temp_patch_data = MainConicalPatch(flattened_cloud, coefficients->values, max_gap);
 	       }
 	       break;
 	}
@@ -159,7 +199,8 @@ int Patch::FindBorders(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud)
 }
 
 //There is no need to worry about if the parameters exist because RecognizeAndSegment Function already checked for remaining operations
-pcl::PointCloud<pcl::PointXYZ>::Ptr FlattenPatches(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Shape model, pcl::ModelCoefficients::Ptr coefficients)
+pcl::PointCloud<pcl::PointXYZ>::Ptr FlattenPatches(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Shape model, 
+	            pcl::ModelCoefficients::Ptr coefficients, float *max_gap)
 {
 	switch (model)
 	{
@@ -186,8 +227,10 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FlattenPatches(pcl::PointCloud<pcl::PointXYZ
 	       {
 			   //rotate the cone so that the axis aligns with the +Z axis, the origin point is the conic point
 			   pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cone_patch_cloud = transformConicalPatchPoints(cloud, coefficients->values);
+			   //visualizePointCloud(transformed_cone_patch_cloud, "transformed_cone_patch_cloud", xy);
 			   //flatten 3d point cloud into XOZ-Plane
-			   pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenCloud(transformed_cone_patch_cloud, coefficients->values);
+			   pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud = FlattenCloud(transformed_cone_patch_cloud, coefficients->values, max_gap);
+			   //visualizePointCloud(flattened_cloud, "flattened_cloud", xy);
 			   return flattened_cloud;
 	       }
 		   break;
@@ -478,14 +521,14 @@ bool SortPolygonList(const Polygon_2& lhs, const Polygon_2& rhs)
 	return lhs.area() > rhs.area();
 }
 
-int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud)
+int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud, float *max_gap)
 {
 	//flatten
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	//FlattenInlierPointsBasedOnModel(&flattened_cloud, Patch::current_model, Patch::cloud_inlier, Patch::coefficients);
-
+	//displayAlphaShape(*flattened_cloud);
 	Polygon_list polygon_list = getAlphaShape(*flattened_cloud);
-	displayAlphaShape(*flattened_cloud);
+	
 
 	if (polygon_list.size() == 1)  // there is one piece without hole inside
 	{
@@ -497,6 +540,11 @@ int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattene
 		      polygon_list.end(),
 		      SortPolygonList);*/
 	polygon_list.sort(SortPolygonList);
+
+	/*for (int i = 0; i < polygon_list.size(); i++)
+	{
+		std::cout << "area = " << polygon_list
+	}*/
 
 
 
@@ -521,44 +569,49 @@ int Patch::FixHoleAndFragmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattene
 	}
 	else
 	{
-		FillHole(hole, *flattened_cloud, &(this->cloud_inlier), &(this->cloud_inlier_normals), &(this->cloud_remainder), &(this->cloud_remainder_normals));
+		FillHole(hole, *flattened_cloud, &(this->cloud_inlier), &(this->cloud_inlier_normals), 
+			     &(this->cloud_remainder), &(this->cloud_remainder_normals), &(this->inliers));
+		*flattened_cloud = FlattenPatches(cloud_inlier, current_model, coefficients, max_gap);
 	}
 	
 	return 0;
 }
 
-void FlattenInlierPointsBasedOnModel(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud, Shape model,
-	                                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_inlier,pcl::ModelCoefficients::Ptr coefficients)
-{
-	if (model == plane)
-	{
-
-		*flattened_cloud = transformPlanarPatchPoints(cloud_inlier, coefficients->values);
-	}
-	else
-	{
-		if (model == cylinder)
-		{
-			pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cyl_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-			transformed_cyl_patch_cloud = transformCylindricalPatchPoints(cloud_inlier, coefficients->values);
-			*flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, coefficients->values);
-		}
-		else
-		{
-			if (model == cone)
-			{
-				pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cone_patch_cloud = transformConicalPatchPoints(cloud_inlier, coefficients->values);
-				*flattened_cloud = FlattenCloud(transformed_cone_patch_cloud, coefficients->values);
-			}
-		}
-	}
-}
+//void FlattenInlierPointsBasedOnModel(pcl::PointCloud<pcl::PointXYZ>::Ptr *flattened_cloud, Shape model,
+//	                                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_inlier,pcl::ModelCoefficients::Ptr coefficients)
+//{
+//	if (model == plane)
+//	{
+//
+//		*flattened_cloud = transformPlanarPatchPoints(cloud_inlier, coefficients->values);
+//	}
+//	else
+//	{
+//		if (model == cylinder)
+//		{
+//			pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cyl_patch_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+//			transformed_cyl_patch_cloud = transformCylindricalPatchPoints(cloud_inlier, coefficients->values);
+//			*flattened_cloud = flattenCylindricalPatch(transformed_cyl_patch_cloud, coefficients->values);
+//		}
+//		else
+//		{
+//			if (model == cone)
+//			{
+//				pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cone_patch_cloud = transformConicalPatchPoints(cloud_inlier, coefficients->values);
+//				*flattened_cloud = FlattenCloud(transformed_cone_patch_cloud, coefficients->values);
+//			}
+//		}
+//	}
+//}
 
 Polygon_2 CheckHoleInside(Polygon_2 polygon_max_area, Polygon_list *polygon_list)
 {
 	Polygon_2 hole;
+	std::cout << "polygon_max_area area = " << polygon_max_area.area() << std::endl;
+
 	for (Polygon_list::iterator it = (*polygon_list).begin(); it != (*polygon_list).end(); ++it)
 	{
+		std::cout << "area = " << (*it).area() << std::endl;
 		if (CGAL::bounded_side_2(polygon_max_area.vertices_begin(), polygon_max_area.vertices_end(),
 			Point((*((*it).vertices_begin())).x(), (*((*it).vertices_begin())).y()), K()) != CGAL::ON_UNBOUNDED_SIDE)
 		{
@@ -614,15 +667,17 @@ void GiveBackOtherPiecesToCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_inlie
 
 }
 
+//problem
 void FillHole(Polygon_2 hole, pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_inlier,
 	pcl::PointCloud<pcl::Normal>::Ptr *cloud_inlier_normals, pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_remainder,
-	pcl::PointCloud<pcl::Normal>::Ptr *cloud_remainder_normals)
+	pcl::PointCloud<pcl::Normal>::Ptr *cloud_remainder_normals, pcl::PointIndices::Ptr *inliers)
 {
 	pcl::PointIndices indices_hole = GetIndicesOfPointsOnPolygon(flattened_cloud, hole);
 
 	//get cloud of hole
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_hole(new pcl::PointCloud<pcl::PointXYZ>);
 	cloud_hole = GetCloudBasedOnIndices(indices_hole, *cloud_inlier);
+	//visualizePointCloud(*cloud_inlier, cloud_hole, "cloud_inlier+cloud_hole", xy);
 
 	//get the plane comprised by the hole throught RANSAC method
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
@@ -641,10 +696,12 @@ void FillHole(Polygon_2 hole, pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_clou
 	transformed_cloud_hole = transformPlanarPatchPoints(cloud_hole, coefficients_plane_hole->values);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud_remainder_projected(new pcl::PointCloud<pcl::PointXYZ>);
 	transformed_cloud_remainder_projected = transformPlanarPatchPoints(cloud_remainder_projected, coefficients_plane_hole->values);
-	//visualizePointCloud(transformed_cloud_remainder_projected, transformed_cloud_hole, "hole", xy);
+	visualizePointCloud(transformed_cloud_remainder_projected, transformed_cloud_hole, "hole", xy);
 
 	//displayAlphaShape(transformed_cloud_hole);
 	//displayAlphaShape(transformed_cloud_remainder_projected);
+
+
 	//sequence the points so that we could use CGAL::bounded_side_2 function to decide 
 	//which part of points in transformed_cloud_remainder_projected is inside transformed_cloud_hole
 	std::vector<point> convex_hull_cloud_hole = convexHullForPoints(transformed_cloud_hole);
@@ -658,7 +715,32 @@ void FillHole(Polygon_2 hole, pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_clou
 	//move the points inside the polygon from cloud_remainder to cloud_inlier
 	pcl::PointIndices indices_points_inside_hole = GetIndicesOfPointsInsidePolygon(transformed_cloud_remainder_projected, hole_on_transformed_plane);
 	MovePartsFromCloudToCloud(indices_points_inside_hole, &cloud_remainder, &cloud_remainder_normals, &cloud_inlier, &cloud_inlier_normals);
+	
+	UpdateInliers(&inliers, indices_points_inside_hole);
+	
 
+
+}
+
+void UpdateInliers(pcl::PointIndices::Ptr **inliers, pcl::PointIndices indices_points_inside_hole)
+{
+	pcl::PointIndices::Ptr inliers_temp(new pcl::PointIndices());
+	//int size_update_inliers = (**inliers)->indices.size() + (**inliers)->indices.size();
+	int size_update_inliers = (**inliers)->indices.size();
+	int size_update_hole = indices_points_inside_hole.indices.size();
+
+	for (int i = 0; i < size_update_inliers; i++)
+	{
+		inliers_temp->indices.push_back((**inliers)->indices.at(i));
+	}
+
+	for (int i = 0; i < size_update_hole; i++)
+	{
+		inliers_temp->indices.push_back(indices_points_inside_hole.indices.at(i));
+	}
+
+	(**inliers)->indices.clear();
+	(**inliers) = inliers_temp;
 }
 
 pcl::PointIndices GetIndicesOfPointsInsideAndOnPolygon(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Polygon_2 polygon)
@@ -760,6 +842,14 @@ void MovePartsFromCloudToCloud(pcl::PointIndices indices, pcl::PointCloud<pcl::P
 	extract.filter(*cloud_remaining_in_cloud_from);
 	(**cloud_from).swap(cloud_remaining_in_cloud_from);
 
+	//visualizePointCloud(**cloud_from, "cloud_from", xy);
+	//visualizePointCloud(cloud_parts, "cloud_parts", xy);
+	//visualizePointCloud(cloud_remaining_in_cloud_from, "cloud_remaining_in_cloud_from", xy);
+
+	//visualizePointCloud(**cloud_from, cloud_parts, "cloud_from+cloud_parts", xy);
+	//visualizePointCloud(cloud_remaining_in_cloud_from, cloud_parts, "cloud_remaining_in_cloud_from+cloud_parts", xy);
+	//visualizePointCloud(**cloud_from, cloud_remaining_in_cloud_from, "cloud_from+cloud_remaining_in_cloud_from", xy);
+
 	pcl::ExtractIndices<pcl::Normal> extract_normals;
 	pcl::PointCloud<pcl::Normal>::Ptr normal_parts(new pcl::PointCloud<pcl::Normal>);
 	pcl::PointCloud<pcl::Normal>::Ptr normal_remaining_in_normal_from(new pcl::PointCloud<pcl::Normal>);
@@ -802,9 +892,9 @@ Node::Node(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Norma
 
 Node::~Node()
 {
-	delete lchild;
-	delete mchild;
-	delete rchild;
+	//delete lchild;
+	//delete mchild;
+	//delete rchild;
 }
 
 
@@ -838,6 +928,7 @@ void DestroyTree(Node *leaf)
 		DestroyTree(leaf->rchild);
 		delete leaf;
 	}
+	return;
 }
 
 void CreateTree(Node *node, int threshold_inliers)
@@ -848,6 +939,8 @@ void CreateTree(Node *node, int threshold_inliers)
 		node->lchild = NULL;
 		node->mchild = NULL;
 		node->rchild = NULL;
+		//DestroyTree(node);
+		node = NULL;
 		return;
 	}
 
@@ -856,7 +949,8 @@ void CreateTree(Node *node, int threshold_inliers)
 		node->lchild = NULL;
 		node->mchild = NULL;
 		node->rchild = NULL;
-		DestroyTree(node);
+		//DestroyTree(node);
+		node = NULL;
 		return;
 	}
 	/*node->lchild->patch->cloud_input = node->patch->cloud_remainder;
