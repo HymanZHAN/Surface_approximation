@@ -528,7 +528,7 @@ Eigen::MatrixXf MainCylindricalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flatten
 	//cerr<<"Number of candidate lines: "<< num_candidates_vertices/2<< endl;	
 	//We recover the indices in the flattened cloud corresponding to the vertices of the candidate lines
 	std::vector<int> indexes = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, Candidate_points);
-	visualizeShapes(flattened_cloud, "Cylinder chains", hull_indexes, indexes);
+	//visualizeShapes(flattened_cloud, "Cylinder chains", hull_indexes, indexes);
 	////We print the just recovered indices corresponding to the points extremes of the candidate lines (they need to be read 2 by 2)
 	//cerr<<"Coordinates of vertices to form candidate line: "<<endl;
 	//for (int i = 0; i < num_candidates_vertices; i++)
@@ -1018,10 +1018,21 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_c
 	{
 		marker_chain.push_back(marker_chain1[i]);
 	}
-	for (int i = 0; i < marker_chain2.size(); i++)
+	if (marker_chain1.size() == 0)
 	{
-		marker_chain.push_back(marker_chain2[i] + marker_chain1[marker_chain1.size() - 1]);
+		for (int i = 0; i < marker_chain2.size(); i++)
+		{
+			marker_chain.push_back(marker_chain2[i]);
+		}
 	}
+	else
+	{
+		for (int i = 0; i < marker_chain2.size(); i++)
+		{
+			marker_chain.push_back(marker_chain2[i] + marker_chain1[marker_chain1.size() - 1]);
+		}
+	}
+	
 
 	std::vector<int> cone_chain;
 	for (int i = 0; i < cone_chain1.size(); i++)
@@ -1110,10 +1121,10 @@ std::vector<int> IdentifyChains(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_
 		{
 			continue;
 		}
-		cout << "A: " << A[0] << " , " << A[1] << endl;
+		/*cout << "A: " << A[0] << " , " << A[1] << endl;
 		cout << "B: " << B[0] << " , " << B[1] << endl;
 		cout << "B-A: " << B[0]-A[0] << " , " << B[1]-A[1] << endl;
-		cout << "norm_one: " << norm_one << endl;
+		cout << "norm_one: " << norm_one << endl;*/
 
 		for (std::size_t i = 0; i < 2; i++)
 		{
@@ -1135,17 +1146,17 @@ std::vector<int> IdentifyChains(pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_
 			{
 				continue;
 			}
-			cout << "c: " << C[0] << " , " << C[1] << endl;
+			/*cout << "c: " << C[0] << " , " << C[1] << endl;
 		    cout << "d: " << D[0] << " , " << D[1] << endl;
 			cout << "D-C: " << D[0]-C[0] << " , " << D[1]-C[1] << endl;
-			cout << "norm_second: " << norm_second << endl;
+			cout << "norm_second: " << norm_second << endl;*/
 
 			for (std::size_t i = 0; i < 2; i++)
 			{
 				diff_second[i] = (D[i] - C[i]) / norm_second;
 			}
-			cout << "diff_second: " << diff_second[0] << " , " << diff_second[1] << endl;	
-			cout << "abs(diff_one.dot(diff_second)): " << abs(diff_one.dot(diff_second)) << endl << endl;	
+			//cout << "diff_second: " << diff_second[0] << " , " << diff_second[1] << endl;	
+			//cout << "abs(diff_one.dot(diff_second)): " << abs(diff_one.dot(diff_second)) << endl << endl;	
 			if (abs(diff_one.dot(diff_second)) > 0.9999)
 			{
 				counter += 2;
@@ -1200,6 +1211,10 @@ std::vector<point> ConeCandiateLines(std::vector<point> convex_hull_points)
 {
 	const int num_hull_vertices = convex_hull_points.size();
 	//cout << endl << "num_hull_vertices = " << num_hull_vertices << endl << endl;
+	if (num_hull_vertices == 0)
+	{
+		return convex_hull_points;
+	}
 	std::vector<point> Candidate_points;
 	Eigen::Vector2f appex(0, 0), vector_point, vector_appex;
 	double norm_appex, norm_point;
@@ -1255,7 +1270,7 @@ std::vector<point> ConeCandiateLines(std::vector<point> convex_hull_points)
 		//cout << "abs(vector_point.dot(vector_appex)): " << abs(vector_point.dot(vector_appex)) << endl << endl;
 
 		// Candidate points will be an array such that consequtive two points forms a pair which can be joined to form a candidate points  
-		if (abs(vector_point.dot(vector_appex))>0.95 || dist<TOLERANCE_FOR_APPEX)
+		if (abs(vector_point.dot(vector_appex))>0.98 || dist<TOLERANCE_FOR_APPEX)
 		{
 			Candidate_points.push_back(boost::make_tuple(point_i[0], point_i[1]));
 			Candidate_points.push_back(boost::make_tuple(point_iplus[0], point_iplus[1]));
@@ -1358,10 +1373,13 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 	float edge1, edge2;
 	int edge1_index, edge2_index;
 	int k, l;
+	float cutting_direction1, cutting_direction2;
 	edge1 = sorted_cloud->at(num_nodes - 1).y;
 	edge2 = sorted_cloud->at(0).y;
+	//cutting_direction1 = edge1;
 	edge1_index = num_nodes - 1;
 	edge2_index = 0;
+	//cutting_direction2 = edge2;
 	*max_gap = abs(2 * M_PI - (edge2 - edge1));
 	//cout << "`max_gap = " << max_gap << endl << endl;
 
@@ -1380,7 +1398,8 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 			//k = i;
 		}
 	}
-
+	cutting_direction1 = edge1;
+	cutting_direction2 = edge2;
 	/*cout << "max_gap = " << max_gap << endl << endl;
 	cout << " edge 1"<< endl;
 	cout << " x[" << edge1_index << "] = " << sorted_cloud->at(edge1_index).x << endl << endl;
@@ -1394,6 +1413,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 
 	float max_distance1 = 0.0, max_distance2 = 0.0;
 	float range = *max_gap;
+	
 
 	//find max_distance near edge1
 	if (edge1 + range <= M_PI)
@@ -1407,6 +1427,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 				if (distance_i > max_distance1)
 				{
 					max_distance1 = distance_i;
+					cutting_direction1 = point_i;
 				}
 			}
 		}
@@ -1423,6 +1444,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 				if (distance_i > max_distance1)
 				{
 					max_distance1 = distance_i;
+					cutting_direction1 = point_i;
 				}
 			}
 		}
@@ -1430,7 +1452,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 	//cout << "max_distance1 = " << max_distance1 << endl;
 
 	//find cutting direction1
-	float cutting_direction1;
+	
 
 	for (int i = edge1_index; i >= 0; --i)
 	{
@@ -1457,6 +1479,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 				if (distance_i > max_distance2)
 				{
 					max_distance2 = distance_i;
+					cutting_direction2 = point_i;
 				}
 			}
 		}
@@ -1472,6 +1495,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 				if (distance_i > max_distance2)
 				{
 					max_distance2 = distance_i;
+					cutting_direction2 = point_i;
 				}
 			}
 		}
@@ -1479,7 +1503,7 @@ float CuttingDirection(pcl::PointCloud<pcl::PointXYZ>::Ptr sorted_cloud, float *
 	//cout << "max_distance2 = " << max_distance2 << endl;
 
 	//find cutting direction2
-	float cutting_direction2;
+	//float cutting_direction2;
 	bool flag = false;
 	for (int i = edge2_index; i < num_nodes; ++i)
 	{
@@ -1759,8 +1783,8 @@ std::vector<point> GenerateConvexHull(std::vector<point> convex_hull_points, flo
 
 		//question 1
 		//5¢X / 180¢X = 0.08 / £k
-		if (abs(alpha_temp - ((max_gap*0.5) / (2 * M_PI)) * beta_max)< 0.02 || 
-			abs(alpha_temp - (beta_fan + ((max_gap*0.5) / (2 * M_PI)) * beta_max)) < 0.02)
+		if (abs(alpha_temp - ((max_gap*0.5) / (2 * M_PI)) * beta_max)< 0.08 || 
+			abs(alpha_temp - (beta_fan + ((max_gap*0.5) / (2 * M_PI)) * beta_max)) < 0.08)
 		{
 			convex_hull_points_final.push_back(boost::make_tuple(point_temp[0], point_temp[1]));
 		}
