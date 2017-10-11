@@ -59,6 +59,48 @@ void outputCloudOnPTS(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string nam
 	}
 }
 
+void outputCloudAndNormalOnXYZ(pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals, std::string name_cloud)
+{
+	std::ofstream outdata;
+	std::string name_file = PATH_HEAD + "\\temp\\" + name_cloud + ".xyz";
+	outdata.open(name_file, ios::app);
+
+	const int num_points = cloud_with_normals->points.size();
+	for (std::size_t i = 0; i < num_points; ++i)
+	{
+		outdata << cloud_with_normals->at(i).x << " " << cloud_with_normals->at(i).y << " " << cloud_with_normals->at(i).z 
+			<< " " << cloud_with_normals->at(i).normal_x << " " << cloud_with_normals->at(i).normal_y << " " << cloud_with_normals->at(i).normal_z
+			    << endl;
+	}
+}
+
+void outputCloudAndNormalOnTXT(pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals, std::string name_cloud)
+{
+	std::ofstream outdata;
+	std::string name_file = PATH_HEAD + "\\temp\\" + name_cloud + ".txt";
+	outdata.open(name_file, ios::app);
+
+	const int num_points = cloud_with_normals->points.size();
+	for (std::size_t i = 0; i < num_points; ++i)
+	{
+		outdata << cloud_with_normals->at(i).x << " " << cloud_with_normals->at(i).y << " " << cloud_with_normals->at(i).z << " " << cloud_with_normals->at(i).normal_x << " " << cloud_with_normals->at(i).normal_y << " " << cloud_with_normals->at(i).normal_z << endl;
+	}
+}
+
+void outputCloudAndNormalOnTXT(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,pcl::PointCloud<pcl::Normal>::Ptr normals, std::string name_cloud)
+{
+	std::ofstream outdata;
+	std::string name_file = PATH_HEAD + "\\temp\\" + name_cloud + ".txt";
+	outdata.open(name_file, ios::app);
+
+	const int num_points = cloud->points.size();
+	for (std::size_t i = 0; i < num_points; ++i)
+	{
+		outdata << cloud->at(i).x << " " << cloud->at(i).y << " " << cloud->at(i).z;
+		outdata << " " << normals->at(i).normal_x << " " << normals->at(i).normal_y << " " << normals->at(i).normal_z << endl;
+	}
+}
+
 void outputExcel(pcl::ModelCoefficients::Ptr coefficients, std::string name_cloud, std::string type)
 {
 	//ifstream indata;

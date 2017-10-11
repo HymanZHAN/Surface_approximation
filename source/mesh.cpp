@@ -3,25 +3,14 @@ obtain the coordinates of vertices and create a new point cloud from them;
 generate random points in each trangle, the number of points being determined according to the area of each triangle and the preset density;
 visualize the two sets of point cloud (vertices and random_points) in the same window with different colors.
 */
-#include <fstream>
-#include <string>
-#include <vector>
-#include <windows.h>
-#include <math.h>
-#include <iostream> 
+
 #include "mesh.h"
-#include "read_parameters.h"
-#include "cloud_visualizer.h"
+
 //#define NOMINMAX
-#include <pcl/io/pcd_io.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 
 
-#include "io.h"
-#include "read_parameters.h"
+
+
 
 using namespace std;
 
@@ -212,7 +201,7 @@ using namespace std;
 //
 //}
 
-void CreatePointCloud(std::vector<Utils_sampling::Vec3> verts, std::vector<Utils_sampling::Vec3> nors, std::string path,
+void CreatePointCloud(std::vector<Utils_sampling::Vec3> verts, std::vector<Utils_sampling::Vec3> nors,
 	pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals)
 {
 	(*cloud_filtered)->width = verts.size();
@@ -436,10 +425,10 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 	Utils_sampling::poisson_disk(POISSON_DISK_SAMPLING_RADIUS, 1000, verts, nors, tris, samples_pos, samples_nor);
 	/*outputExcel(samples_pos, samples_nor);*/
 
-	string path_temporary = PATH_TEMPORARY_FILE + "random_points.pcd";
-	char* path_temporary_file = new char[path_temporary.size() + 1];
-	strcpy(path_temporary_file, path_temporary.c_str());
-	CreatePointCloud(samples_pos, samples_nor, path_temporary, cloud_filtered, cloud_normals);
+	//string path_temporary = PATH_TEMPORARY_FILE + "random_points.pcd";
+	//char* path_temporary_file = new char[path_temporary.size() + 1];
+	//strcpy(path_temporary_file, path_temporary.c_str());
+	CreatePointCloud(samples_pos, samples_nor, cloud_filtered, cloud_normals);
 	//outputCloudOnPTS(*cloud_filtered, "cloud_filtered");
 	/*createpointcloud(random_point_x, random_point_y, random_point_z, path_temporary_file);
 

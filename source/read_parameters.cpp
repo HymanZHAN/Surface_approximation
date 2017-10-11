@@ -33,6 +33,7 @@ double CONE_MAX_OPENING_ANGLE;
 double TOLERANCE_FOR_ADJACENT_CHAINS;
 double TOLERANCE_FOR_APPEX;
 double POISSON_DISK_SAMPLING_RADIUS;
+int POISSON_DISK_SAMPLING_NUMBER;
 std::string PATH_TEMPORARY_FILE;
 double PLANE_AREA_PERCENTAGE;
 double CYL_AREA_PERCENTAGE;
@@ -195,15 +196,17 @@ void setParameters(std::vector<std::string>& parameters)
 				 break;
 		case 23: {POISSON_DISK_SAMPLING_RADIUS = std::stoi(parameters[i]); }
 				 break;
-		case 24: {PATH_TEMPORARY_FILE = parameters[i]; }
+		case 24: {POISSON_DISK_SAMPLING_NUMBER = std::stoi(parameters[i]); }
 				 break;
-		case 25: {PLANE_AREA_PERCENTAGE = std::stod(parameters[i]); }
+		case 25: {PATH_TEMPORARY_FILE = parameters[i]; }
 				 break;
-		case 26: {CYL_AREA_PERCENTAGE = std::stod(parameters[i]); }
+		case 26: {PLANE_AREA_PERCENTAGE = std::stod(parameters[i]); }
 				 break;
-		case 27: {CONE_AREA_PERCENTAGE = std::stod(parameters[i]); }
+		case 27: {CYL_AREA_PERCENTAGE = std::stod(parameters[i]); }
 				 break;
-
+		case 28: {CONE_AREA_PERCENTAGE = std::stod(parameters[i]); }
+				 break;
+				 
 		}
 	}
 }
@@ -213,7 +216,7 @@ bool readParameterFile(std::string parameterTxtFilePath)
 	std::ifstream infile(parameterTxtFilePath);
 	std::string line;
 	std::vector<std::string> parameters;
-	const size_t num_parameters = 28;
+	const size_t num_parameters = 29;
 	//size_t n_lines = 0;
 
 	while (std::getline(infile, line))

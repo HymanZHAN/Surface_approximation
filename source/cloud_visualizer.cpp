@@ -52,6 +52,62 @@ void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string 
 
 }
 
+boost::shared_ptr<pcl::visualization::PCLVisualizer> normalsVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, pcl::PointCloud<pcl::Normal>::ConstPtr normals, std::string window_label, camera_position camera_pos)
+{
+	// --------------------------------------------------------
+	// -----Open 3D viewer and add point cloud and normals-----
+	// --------------------------------------------------------
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(window_label));
+	viewer->setBackgroundColor(0, 0, 0);
+	pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZ> rgb(cloud);
+	viewer->addPointCloud(cloud, "sample cloud");
+	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
+	viewer->addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud, normals, 10, 100, "normals");
+	viewer->addCoordinateSystem(500.0, "global");
+	//viewer->initCameraParameters();
+
+	// Set camera position according to different input.
+	switch (camera_pos)
+	{
+	case xy:
+		viewer->setCameraPosition(
+			0, 0, 1,//double pos_x, double pos_y, double pos_z,
+			0, 0, -1,//double view_x, double view_y, double view_z,
+			1, 0, 0);//double up_x, double up_y, double up_z, int viewport = 0
+	case yz:
+		viewer->setCameraPosition(
+			1, 0, 0,//double pos_x, double pos_y, double pos_z,                                    
+			-1, 0, 0,//double view_x, double view_y, double view_z,
+			0, 1, 0);//double up_x, double up_y, double up_z, int viewport = 0
+	case xz:
+		viewer->setCameraPosition(
+			0, -1, 0,//double pos_x, double pos_y, double pos_z,                                    
+			0, 1, 0,//double view_x, double view_y, double view_z,
+			0, 0, 1);//double up_x, double up_y, double up_z, int viewport = 0
+	}
+
+	return (viewer);
+}
+
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr cloud_normals, std::string viewer_window_label, camera_position camera_pos)
+{
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+
+	// Make use of the 
+	viewer = normalsVis(cloud, cloud_normals, viewer_window_label, camera_pos);
+
+	// Reset camera according to the input data. Zoom out so that all data points can be viewed.
+	viewer->resetCamera();
+
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce();
+	}
+	viewer->close();
+
+}
+
+
 void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, std::string label_viewer_window, camera_position camera_pos)
 {
 	// Window setup

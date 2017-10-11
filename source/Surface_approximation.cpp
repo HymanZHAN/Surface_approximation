@@ -99,41 +99,73 @@ bool IsSupportPos(std::string* load_file)
 //		plane->values[i] = eigen_plane.coeffs()[i];
 //}
 
-void TransformCloseToCoordinateSystem(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud)
+void TransformCloseToCoordinateSystem(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals)
 {
 	//pcl::ModelCoefficients::Ptr plane;
 	//ThreePointsToPlane((cloud->at(0))., cloud->at(1), cloud->at(2), plane);
 	// Ground plane estimation:
-	Eigen::VectorXf ground_coeffs;
-	ground_coeffs.resize(4);
-	std::vector<int> clicked_points_indices;
-	for (int i = 0; i < 3; i++)
-	{
-		clicked_points_indices.push_back(i);
-	}
-	pcl::SampleConsensusModelPlane<pcl::PointXYZ> model_plane(*cloud);
-	model_plane.computeModelCoefficients(clicked_points_indices, ground_coeffs);
-	std::cout << "Ground plane: " << ground_coeffs(0) << " " << ground_coeffs(1) << " " << ground_coeffs(2) << " " << ground_coeffs(3) << std::endl;
-	pcl::ModelCoefficients::Ptr plane_coefficients(new pcl::ModelCoefficients());
-	plane_coefficients->values.push_back((*cloud)->at(0).x - 1000);
-	plane_coefficients->values.push_back((*cloud)->at(0).y - 1000);
-	plane_coefficients->values.push_back((*cloud)->at(0).z - 1000);
+	//Eigen::VectorXf ground_coeffs;
+	//ground_coeffs.resize(4);
+	//std::vector<int> clicked_points_indices;
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	clicked_points_indices.push_back(i);
+	//}
+	//pcl::SampleConsensusModelPlane<pcl::PointXYZ> model_plane(*cloud);
+	//model_plane.computeModelCoefficients(clicked_points_indices, ground_coeffs);
+	//std::cout << "Ground plane: " << ground_coeffs(0) << " " << ground_coeffs(1) << " " << ground_coeffs(2) << " " << ground_coeffs(3) << std::endl;
+	pcl::ModelCoefficients::Ptr transform_coefficients(new pcl::ModelCoefficients());
+	transform_coefficients->values.push_back((*cloud)->at(0).x - 1000);
+	transform_coefficients->values.push_back((*cloud)->at(0).y - 1000);
+	transform_coefficients->values.push_back((*cloud)->at(0).z - 1000);
+	transform_coefficients->values.push_back(10);
+	transform_coefficients->values.push_back(20);
+	transform_coefficients->values.push_back(30);
+	transform_coefficients->values.push_back(0.8);
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	transform_coefficients->values.push_back(ground_coeffs(i));
+	//}
 	
-	for (int i = 0; i < 4; i++)
-	{
-		plane_coefficients->values.push_back(ground_coeffs(i));
-	}
-	plane_coefficients->values.push_back(0.8);
 	
+	//transform coordinates of point cloud by the method of transforming cone, 
+	//appex of which is the first point in point cloud, central axis of which is normal of the plane
 	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	transformed_cloud = transformConicalPatchPoints(*cloud, plane_coefficients->values);
+	transformed_cloud = transformConicalPatchPoints(*cloud, transform_coefficients->values);
 	(*cloud).swap(transformed_cloud);
+
+	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud_normals(new pcl::PointCloud<pcl::PointXYZ>);
+	int size_normals = (*cloud_normals)->size();
+	for (int i = 0; i < size_normals; i++)
+	{
+		transformed_cloud_normals->push_back(pcl::PointXYZ((*cloud_normals)->at(i).normal_x, (*cloud_normals)->at(i).normal_y, (*cloud_normals)->at(i).normal_z));
+	}
+	transformed_cloud_normals = transformConicalPatchPoints(transformed_cloud_normals, transform_coefficients->values);
+	pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_new(new pcl::PointCloud<pcl::Normal>);
+	for (int i = 0; i < size_normals; i++)
+	{
+		cloud_normals_new->push_back(pcl::Normal(transformed_cloud_normals->at(i).x, transformed_cloud_normals->at(i).y, transformed_cloud_normals->at(i).z));
+	}
+	(*cloud_normals).swap(cloud_normals_new);
+
 
 	//pcl::PointCloud<pcl::Normal>::Ptr transformed_cloud_normals(new pcl::PointCloud<pcl::Normal>);
 	//transformed_cloud_normals = transformPlanarPatchPoints(cloud_normal, plane_coefficients->values);
 	//(*cloud_normal).swap(*transformed_cloud_normals);
 }
 
+void TransformCloseToCoordinateSystem(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud)
+{
+	float x0 = (*cloud)->at(0).x, y0 = (*cloud)->at(0).y, z0 = (*cloud)->at(0).z;
+	int size = (*cloud)->size();
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_new(new pcl::PointCloud<pcl::PointXYZ>);
+	
+	for (int i = 0; i < size; i++)
+	{
+		cloud_new->push_back(pcl::PointXYZ((*cloud)->at(i).x - x0, (*cloud)->at(i).y - y0, (*cloud)->at(i).z - z0));
+	}
+	(*cloud).swap(cloud_new);
+}
 
 
 int main(int argc, char** argv)
@@ -216,7 +248,7 @@ int main(int argc, char** argv)
 		//visualizePointCloud(original_cloud_normals, "original_cloud_normals",xy);
 		//visualizePointCloud(cloud, "cloud",xy);
 		//visualizePointCloud(cloud_normals, "cloud_normals",xy);
-		//pcl::io::loadPCDFile(PATH_PCD_DOC, *cloud_filtered);
+		
 		//// Fill the initial point clouds reading from the PCD file
 		//if (!fillClouds(PATH_PCD_DOC, cloud_filtered, cloud_normals))
 		//{
@@ -242,10 +274,17 @@ int main(int argc, char** argv)
 		Eigen::MatrixXf *patch_data = new Eigen::MatrixXf[max_patches]; //vector of matrices
 		pcl::PointCloud<pcl::PointXYZ>::Ptr *sourceClouds = new pcl::PointCloud<pcl::PointXYZ>::Ptr[max_patches]; //vector of pointers to cloud
 																												  //vector < PointCloud<PointXYZ>::Ptr, Eigen::aligned_allocator <PointCloud <PointXYZ>::Ptr > > sourceClouds;
-		visualizePointCloud(cloud, "cloud before transforming", xy);
+		visualizePointCloud(cloud, cloud_normals, "cloud before transforming", xy);
+		//outputCloudAndNormalOnTXT(cloud, cloud_normals, "cloud_with_normal_before");
+		//TransformCloseToCoordinateSystem(&cloud, &cloud_normals);
 		TransformCloseToCoordinateSystem(&cloud);
-		visualizePointCloud(cloud, "cloud after transforming", xy);
-
+		//visualizePointCloud(cloud,"cloud after transforming", xy);
+		visualizePointCloud(cloud, cloud_normals, "cloud after transforming", xy);
+		//outputCloudAndNormalOnTXT(cloud, cloud_normals, "cloud_with_normal");
+		/*pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>);
+		pcl::copyPointCloud(*cloud, *cloud_with_normals);
+		pcl::copyPointCloud(*cloud_normals, *cloud_with_normals);
+		pcl::io::savePCDFileASCII(PATH_TEMPORARY_FILE + "cloud.pcd", *cloud_with_normals);*/
 		//int model_with_maximum_points[4];   // [1/2/3][num_plane][num_cylinder][num_cone]
 		                                    // [1/2/3]: the model with maximum points,0 = plane,1=cylinder,2=cone
 
