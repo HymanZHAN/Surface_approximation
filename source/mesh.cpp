@@ -422,6 +422,13 @@ bool ReadSTLFile(const char *cfilename, pcl::PointCloud<pcl::PointXYZ>::Ptr *clo
 	&random_point_normal_x, &random_point_normal_y, &random_point_normal_z,
 	&verts, &nors, &tris);*/
 	PrepareVertsAndNors(coorX, coorY, coorZ, &verts, &nors, &tris);
+
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_mesh(new pcl::PointCloud<pcl::PointXYZ>);
+	//pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_mesh(new pcl::PointCloud<pcl::Normal>);
+	//CreatePointCloud(verts, nors, &cloud_mesh, &cloud_normals_mesh);
+	//TransformCloseToCoordinateSystem(&cloud_mesh);
+	//visualizePointCloud(cloud_mesh, cloud_normals_mesh, "cloud_mesh", xy);
+
 	Utils_sampling::poisson_disk(POISSON_DISK_SAMPLING_RADIUS, 1000, verts, nors, tris, samples_pos, samples_nor);
 	/*outputExcel(samples_pos, samples_nor);*/
 

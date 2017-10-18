@@ -63,7 +63,7 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 
 	//alpha shape
 	FixHoleAndFragmentation(&flattened_cloud, &max_gap);
-	visualizePointCloud(cloud_input, cloud_inlier, "after fixing holes and fragments", xy);
+	//visualizePointCloud(cloud_input, cloud_inlier, "after fixing holes and fragments", xy);
 	//visualizePointCloud(cloud_inlier, "after fixing holes and fragments", xy);
 
 	FindBorders(flattened_cloud, max_gap);

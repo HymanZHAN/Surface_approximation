@@ -9,7 +9,8 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud (pcl::PointCloud<p
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addPointCloud(cloud_to_visualize, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
-	viewer->addCoordinateSystem(500.0, "global");
+	//viewer->addCoordinateSystem(500.0, "global");
+	viewer->addCoordinateSystem(500.0, cloud_to_visualize->at(0).x, cloud_to_visualize->at(0).y, cloud_to_visualize->at(0).z, xy);
 	
 	// Set camera position according to different input.
 	switch (camera_pos)
@@ -63,8 +64,9 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> normalsVis(pcl::PointCloud<
 	viewer->addPointCloud(cloud, "sample cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 	viewer->addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud, normals, 10, 100, "normals");
-	viewer->addCoordinateSystem(500.0, "global");
+	//viewer->addCoordinateSystem(500.0, "global");
 	//viewer->initCameraParameters();
+	viewer->addCoordinateSystem(500.0, cloud->at(0).x, cloud->at(0).y, cloud->at(0).z, xy);
 
 	// Set camera position according to different input.
 	switch (camera_pos)
@@ -113,7 +115,8 @@ void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointC
 	// Window setup
 	pcl::visualization::PCLVisualizer viewer(label_viewer_window);
 	viewer.setBackgroundColor(0, 0, 0);
-	viewer.addCoordinateSystem(500.0);
+	//viewer.addCoordinateSystem(500.0);
+	viewer.addCoordinateSystem(500.0, cloud2->at(0).x, cloud2->at(0).y, cloud2->at(0).z, xy);
 	viewer.setCameraPosition(0, 0, 1,//double pos_x, double pos_y, double pos_z,                                    
 							 0, 0, 0,//double view_x, double view_y, double view_z,
 							 0, 1, 0);//double up_x, double up_y, double up_z, int viewport = 0);

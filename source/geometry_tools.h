@@ -38,4 +38,8 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr transformCloudByMatrix_cylinder(
 	pcl::PointCloud<pcl::PointXYZ>::Ptr patch_cloud, 
 	Eigen::Matrix3f transform_matrix, std::vector<float> cyl_param);
 
+void TransformCloseToCoordinateSystem(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals);
+
+void TransformCloseToCoordinateSystem(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud);
+
 #endif
