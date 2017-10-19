@@ -22,7 +22,10 @@ void setSegmentationParametersForCylinder(pcl::SACSegmentationFromNormals<pcl::P
 	seg_cyl.setNormalDistanceWeight (CYL_WEIGHT_NORMAL_DISTANCE);
 	seg_cyl.setMaxIterations (CYL_MAX_NUM_ITER);
 	seg_cyl.setDistanceThreshold (CYL_TOL);
-	//seg_cyl.setRadiusLimits (CYL_MIN_RADIUS_LIMIT, CYL_MAX_RADIUS_LIMIT);
+	//double a, b;
+	//seg_cyl.getRadiusLimits(a, b);
+	//std::cout << "a = " << a << "  b =" << b << std::endl;
+	seg_cyl.setRadiusLimits (CYL_MIN_RADIUS_LIMIT, CYL_MAX_RADIUS_LIMIT);
 }
 
 void setSegmentationParametersForCone(pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal>& seg_cone)
@@ -35,5 +38,8 @@ void setSegmentationParametersForCone(pcl::SACSegmentationFromNormals<pcl::Point
 	seg_cone.setNormalDistanceWeight (CONE_WEIGHT_NORMAL_DISTANCE);
 	seg_cone.setMaxIterations (CONE_MAX_NUM_ITER);
 	seg_cone.setDistanceThreshold (CONE_TOL);
-	//seg_cone.setRadiusLimits (CONE_MIN_RADIUS_LIMIT, CONE_MAX_RADIUS_LIMIT);
+	//double a, b;
+	//seg_cone.getRadiusLimits(a, b);
+	//std::cout << "a = " << a << "  b =" << b << std::endl;
+	seg_cone.setRadiusLimits (CONE_MIN_RADIUS_LIMIT, CONE_MAX_RADIUS_LIMIT);
 }

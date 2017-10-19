@@ -13,7 +13,7 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 	//Use RANSAC/PROSAC method to look for developable surface in the input cloud
 	if (RecognizeAndSegment(cloud_input, cloud_input_normals, current_model, &inliers, &coefficients) < threshold)
 	{
-		std::cout << "There is no";
+		std::cout << "The recognized";
 		switch (current_model)
     	{
 		   case Shape::plane: 
@@ -34,7 +34,7 @@ Patch::Patch(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Nor
 		   }
 		   break;
 	    }
-		std::cout << "in the input cloud." << std::endl;
+		std::cout << "patch has too few points." << std::endl;
 		inliers->indices.clear();
 		return;
 	}
@@ -119,7 +119,7 @@ bool CheckPiecesInCloudRemainder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remai
 {
 	if (cloud_remainder->points.size() == 0)
 	{
-		return true;
+		return false;
 	}
 	// Creating the KdTree object for the search method of the extraction
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
@@ -127,7 +127,7 @@ bool CheckPiecesInCloudRemainder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_remai
 
 	std::vector<pcl::PointIndices> cluster_indices;
 	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-	ec.setClusterTolerance(20); 
+	ec.setClusterTolerance(POISSON_DISK_SAMPLING_RADIUS * 3);
 	ec.setMinClusterSize(10);
 	ec.setMaxClusterSize(500000);
 	ec.setSearchMethod(tree);

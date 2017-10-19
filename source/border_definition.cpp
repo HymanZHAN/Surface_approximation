@@ -950,15 +950,15 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_c
 			flatten_cloud2->push_back(pcl::PointXYZ(flatten_point_i[0], 0, flatten_point_i[1]));
 		}
 	}
-	//visualizePointCloud(flattened_cloud, "flatten_cloud", xy);
-	//visualizePointCloud(flatten_cloud1, "flatten_cloud1", xy);
-	//visualizePointCloud(flatten_cloud2, "flatten_cloud2", xy);
-
+	/*visualizePointCloud(flattened_cloud, "flatten_cloud", xy);
+	visualizePointCloud(flatten_cloud1, "flatten_cloud1", xy);
+	visualizePointCloud(flatten_cloud2, "flatten_cloud2", xy);
+*/
 	convex_hull_points1 = convexHullForPoints(flatten_cloud1);
 	convex_hull_points2 = convexHullForPoints(flatten_cloud2);
 	convex_hull_points = convexHullForPoints(flattened_cloud);
-	//std::vector<int> hull_indexes3 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points1);
-	//visualizeConvexHull(flattened_cloud, "convex_hull_points1", hull_indexes3);
+	/*std::vector<int> hull_indexes3 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points);
+	visualizeConvexHull(flattened_cloud, "convex_hull_points1", hull_indexes3);*/
 	//hull_indexes3 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points2);
 	//visualizeConvexHull(flattened_cloud, "convex_hull_points2", hull_indexes3);
 	//*convex_hull_area = getConvexHullArea(convex_hull_points);
@@ -969,10 +969,10 @@ Eigen::MatrixXf MainConicalPatch(pcl::PointCloud<pcl::PointXYZ>::Ptr flattened_c
 
 	convex_hull_points1 = GenerateConvexHull(convex_hull_points1, beta_max, max_gap, beta_fan);
 	convex_hull_points2 = GenerateConvexHull(convex_hull_points2, beta_max, max_gap, beta_fan);
-	//std::vector<int> hull_indexes4 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points1);
-	//visualizeConvexHull(flattened_cloud, "GenerateConvexHull1", hull_indexes4);
-	//hull_indexes4 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points2);
-	//visualizeConvexHull(flattened_cloud, "GenerateConvexHull2", hull_indexes4);
+	/*std::vector<int> hull_indexes4 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points1);
+	visualizeConvexHull(flattened_cloud, "GenerateConvexHull1", hull_indexes4);
+	hull_indexes4 = IdentifyIndexOfCandiatePointInFlattenCloud(flattened_cloud, convex_hull_points2);
+	visualizeConvexHull(flattened_cloud, "GenerateConvexHull2", hull_indexes4);*/
 	//The function named sequenceConvexHull leads to the mess (when testing Cone_curved_generatrix_2.stl, there is nothing in candidate_line1)
 
 	//hull_indexes1 = IdentifyIndexOfCandiatePointInFlattenCloud(flatten_cloud, convex_hull_points1);
@@ -1765,6 +1765,13 @@ std::vector<point> getConvexHullOfBoostPolygon(polygon poly)
 std::vector<point> GenerateConvexHull(std::vector<point> convex_hull_points, float beta_max, float max_gap, float beta_fan)
 {
 	std::vector<point> convex_hull_points_final;
+	int size = convex_hull_points.size();
+	if (size == 0)
+	{
+		std::cout << "there is no CH points" << std::endl;
+		return convex_hull_points_final;
+	}
+	
 	Eigen::Vector2f point_temp;
 	float alpha_temp;
 	//float beta_max = 2 * M_PI * sin(cone_param_6);
@@ -1796,6 +1803,10 @@ std::vector<point> SequenceConvexHull(std::vector<point> convex_hull_points)
 {
 	std::vector<point> convex_hull_points_final;
 	int num_convex_hull = convex_hull_points.size();
+	if (num_convex_hull == 0)
+	{
+		return convex_hull_points_final;
+	}
 	Eigen::Vector2f point_temp;
 	//float length[100];
 
@@ -1856,6 +1867,10 @@ std::vector<int> IdentifyIndexOfCandiatePointInFlattenCloud(pcl::PointCloud<pcl:
 	std::vector<int> indexes;
 	const int num_nodes = flattened_cloud->points.size();
 	const int num_hull_vertices = Candidate_points.size();
+	if (num_hull_vertices == 0)
+	{
+		return indexes;
+	}
 	float convex_x, convex_z, flat_x, flat_z;
 	for (std::size_t i = 0; i < num_hull_vertices; i++)
 	{
